@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Россильбер | Мониторинг контрагентов</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-6 md:p-12 min-h-screen flex flex-col">
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 flex-grow w-full">
+        
+        <div class="mb-8 border-b border-gray-200 pb-4">
+            <h1 class="text-4xl font-extrabold text-indigo-800 tracking-wider uppercase mb-1">Россильбер</h1>
+            <p class="text-xl text-gray-500">Мониторинг контрагентов и судов</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            
+            <div class="lg:col-span-1 bg-gray-50 p-6 rounded-lg border border-gray-200 flex flex-col">
+                <h2 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">Список на проверку</h2>
+                <p class="text-sm text-gray-600 mb-3">Вставьте ИНН контрагентов (можно списком, столбиком или прямо с текстом — алгоритм сам найдет все ИНН).</p>
+                
+                <textarea id="innInput" rows="12" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-mono flex-grow" placeholder="Например:
+7707083893
+ООО Ромашка ИНН 7728168971
+7736050003"></textarea>
+                
+                <button onclick="generateDashboard()" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition shadow-md">
+                    🔍 Сформировать отчет
+                </button>
+            </div>
+
+            <div class="lg:col-span-2 flex flex-col">
+                <h2 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">Сводная панель (Открытие в 1 клик)</h2>
+                
+                <div id="emptyState" class="flex-grow flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 text-gray-400 p-10 text-center">
+                    <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    Добавьте ИНН и нажмите кнопку, чтобы сгенерировать ссылки на базы данных
+                </div>
+
+                <div id="tableContainer" class="hidden overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-indigo-50">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-bold text-indigo-800 uppercase tracking-wider">ИНН</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-indigo-800 uppercase tracking-wider">Арбитраж</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-indigo-800 uppercase tracking-wider">Долги (ФССП)</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-indigo-800 uppercase tracking-wider">Банкротство</th>
+                                <th scope="col" class="px-4 py-3 text-center text-xs font-bold text-indigo-800 uppercase tracking-wider">Выписка ФНС</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultBody" class="bg-white divide-y divide-gray-200">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-10 border-gray-300">
+
+        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 mb-2">Как пользоваться инструментом:</h3>
+            <p class="text-gray-700">Вставьте в левое окно список компаний или ИНН (можно вперемешку с текстом). Алгоритм автоматически извлечет 10- и 12-значные ИНН и создаст таблицу. В таблице кликните на нужный значок, чтобы мгновенно перейти на профиль компании в Картотеке арбитражных дел, реестре банкротств (Федресурс), базе приставов (ФССП) или сервисах проверки контрагентов ФНС. Это избавляет от ручного вбивания ИНН на каждом сайте.</p>
+        </div>
+
+        <div class="mt-8 text-right text-xs text-gray-400">
+            разработал Патрушев Е.
+        </div>
+    </div>
+
+    <script>
+        function generateDashboard() {
+            const inputText = document.getElementById('innInput').value;
+            
+            if (!inputText.trim()) {
+                alert("Пожалуйста, вставьте текст с ИНН.");
+                return;
+            }
+
+            // Ищем все 10-значные (ЮЛ) и 12-значные (ИП) последовательности цифр
+            const regex = /\b(\d{10}|\d{12})\b/g;
+            let match;
+            const innList = new Set(); // Используем Set для исключения дубликатов
+
+            while ((match = regex.exec(inputText)) !== null) {
+                innList.add(match[1]);
+            }
+
+            const uniqueInns = Array.from(innList);
+
+            if (uniqueInns.length === 0) {
+                alert("В тексте не найдено ни одного ИНН. Проверьте правильность ввода (ИНН должен состоять из 10 или 12 цифр).");
+                return;
+            }
+
+            const tbody = document.getElementById('resultBody');
+            tbody.innerHTML = ''; // Очищаем таблицу
+
+            uniqueInns.forEach(inn => {
+                // Формируем умные ссылки (Deep Links)
+                // Для агрегированной информации по судам и ФССП лучше всего работает Rusprofile / ЧД
+                const courtLink = `https://www.rusprofile.ru/search?query=${inn}`; 
+                // Федресурс (Банкротства)
+                const fedresursLink = `https://fedresurs.ru/search/entity?code=${inn}`;
+                // Прозрачный бизнес ФНС (Долги, массовость, выписки)
+                const fnsLink = `https://pb.nalog.ru/search.html?queryAll=${inn}`;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition";
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900 border-r border-gray-100">${inn}</td>
+                    
+                    <td class="px-4 py-4 whitespace-nowrap text-center">
+                        <a href="${courtLink}" target="_blank" class="inline-flex items-center px-3 py-1 bg-red-50 text-red-700 border border-red-200 rounded hover:bg-red-100 font-medium text-xs transition">
+                            ⚖️ Суды
+                        </a>
+                    </td>
+                    
+                    <td class="px-4 py-4 whitespace-nowrap text-center">
+                        <a href="${courtLink}" target="_blank" class="inline-flex items-center px-3 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded hover:bg-yellow-100 font-medium text-xs transition">
+                            🚨 Приставы
+                        </a>
+                    </td>
+                    
+                    <td class="px-4 py-4 whitespace-nowrap text-center">
+                        <a href="${fedresursLink}" target="_blank" class="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded hover:bg-purple-100 font-medium text-xs transition">
+                            📉 Федресурс
+                        </a>
+                    </td>
+
+                    <td class="px-4 py-4 whitespace-nowrap text-center">
+                        <a href="${fnsLink}" target="_blank" class="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 font-medium text-xs transition">
+                            🏢 ФНС
+                        </a>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Показываем таблицу, скрываем пустую заглушку
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('tableContainer').classList.remove('hidden');
+        }
+    </script>
+</body>
+<a href="index.html" class="inline-block mb-4 text-indigo-600 hover:text-indigo-800 font-bold">← На главную</a>
+</html>

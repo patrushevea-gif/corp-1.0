@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Россильбер | Автозаполнение договоров</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.37.11/docxtemplater.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-6 md:p-12">
+
+    <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+        
+        <div class="mb-8 border-b border-gray-200 pb-4">
+            <h1 class="text-4xl font-extrabold text-indigo-800 tracking-wider uppercase mb-1">Россильбер</h1>
+            <p class="text-xl text-gray-500">Автозаполнение договоров</p>
+        </div>
+
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+            <h2 class="text-xl font-semibold mb-2">1. Загрузите шаблон договора (.docx)</h2>
+            <input type="file" id="templateInput" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">2. Вставьте текст карточки контрагента</h2>
+            <textarea id="cardText" rows="8" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono text-sm" placeholder="Вставьте скопированный текст сюда...
+Например:
+ООО «Россильбер»
+ИНН 1234567890 / КПП 123456789
+ОГРН 1234567890123
+в лице Генерального директора Иванова Ивана Ивановича, действующего на основании Устава.
+Р/с: 40702810000000000000 в ПАО СБЕРБАНК
+К/с: 30101810400000000225, БИК: 044525225"></textarea>
+            <button onclick="parseText()" class="mt-3 bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-gray-900 transition font-medium">Распознать все данные</button>
+        </div>
+
+        <div class="mb-6" id="previewSection" style="display: none;">
+            <h2 class="text-xl font-semibold mb-2">3. Проверьте и исправьте данные</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200" id="dataFields">
+                </div>
+            <button onclick="generateDoc()" class="mt-6 w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-indigo-700 transition shadow-md">Сформировать и скачать договор</button>
+        </div>
+
+        <hr class="my-10 border-gray-300">
+
+        <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+            <h3 class="text-2xl font-bold text-yellow-800 mb-4">Инструкция: Нюансы подготовки Word-шаблона</h3>
+            <p class="mb-4 text-gray-700">Чтобы всё заработало корректно, ваш исходный договор должен быть размечен специальными тегами в фигурных скобках. Скрипт найдет эти теги в документе и заменит их на данные из карточки.</p>
+            
+            <div class="bg-white p-4 border border-yellow-300 rounded-md mb-4 shadow-sm">
+                <p class="font-mono text-sm text-gray-800">
+                    <strong>Пример в Word:</strong><br><br>
+                    «Общество с ограниченной ответственностью <strong>{NAME}</strong>, в лице Генерального директора <strong>{BOSS_NAME}</strong>, действующего на основании <strong>{FOUNDATION}</strong>, с одной стороны...»
+                </p>
+            </div>
+
+            <p class="mb-4 text-gray-700"><strong>Преимущество:</strong> Вы можете использовать один и тот же тег (например, <strong>{NAME}</strong>) в договоре 10 раз — система заменит их все одновременно.</p>
+            
+            <h4 class="font-bold text-lg mb-2 text-gray-800">Полный список тегов (маркерных точек) для вашего шаблона:</h4>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <ul class="list-disc pl-6 space-y-2 text-gray-700">
+                    <li><strong>{NAME}</strong> — Название компании (например: ООО "Альфа")</li>
+                    <li><strong>{INN}</strong> — ИНН организации (10 или 12 цифр)</li>
+                    <li><strong>{KPP}</strong> — КПП организации (9 цифр)</li>
+                    <li><strong>{OGRN}</strong> — ОГРН или ОГРНИП (13 или 15 цифр)</li>
+                    <li><strong>{BOSS_NAME}</strong> — ФИО подписанта (после "в лице")</li>
+                </ul>
+                <ul class="list-disc pl-6 space-y-2 text-gray-700">
+                    <li><strong>{FOUNDATION}</strong> — Документ-основание (например: Устава)</li>
+                    <li><strong>{RS}</strong> — Расчетный счет (20 цифр)</li>
+                    <li><strong>{KS}</strong> — Корреспондентский счет (20 цифр)</li>
+                    <li><strong>{BIK}</strong> — БИК банка (9 цифр)</li>
+                    <li><strong>{BANK}</strong> — Название банка</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-8 text-right text-xs text-gray-400">
+            разработал Патрушев Е.
+        </div>
+    </div>
+
+    <script>
+        // Глобальный объект для хранения всех данных
+        let parsedData = {
+            NAME: "", INN: "", KPP: "", OGRN: "", 
+            BOSS_NAME: "", FOUNDATION: "",
+            RS: "", KS: "", BIK: "", BANK: ""
+        };
+
+        // Функция парсинга текста
+        function parseText() {
+            const text = document.getElementById('cardText').value;
+            
+            if (!text.trim()) {
+                alert("Пожалуйста, вставьте текст карточки компании.");
+                return;
+            }
+
+            // Регулярные выражения для юридических данных
+            const nameMatch = text.match(/(ООО|АО|ЗАО|ПАО|ИП)\s+["«]?([^"»\n,]+)["»]?/i);
+            const innMatch = text.match(/ИНН\s*[:.-]?\s*(\d{10,12})/i);
+            const kppMatch = text.match(/КПП\s*[:.-]?\s*(\d{9})/i);
+            const ogrnMatch = text.match(/ОГРН(?:ИП)?\s*[:.-]?\s*(\d{13,15})/i);
+            
+            // Руководитель и основание
+            const bossMatch = text.match(/в лице\s+([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+)/i);
+            const foundMatch = text.match(/на основании\s+([а-яА-ЯёЁ]+)/i);
+
+            // Банковские реквизиты
+            const rsMatch = text.match(/(?:р\/с|расчетный счет|р\.\s*с\.)\s*[:.-]?\s*(\d{20})/i);
+            const ksMatch = text.match(/(?:к\/с|корр\.?\s*счет|корреспондентский счет)\s*[:.-]?\s*(\d{20})/i);
+            const bikMatch = text.match(/БИК\s*[:.-]?\s*(\d{9})/i);
+            const bankMatch = text.match(/(?:в\s+|Банк[:\s]*)([А-Яа-яЁёa-zA-Z\s"«»-]+(?:банк|БАНК)[А-Яа-яЁёa-zA-Z\s"«»-]*)/i);
+
+            // Заполнение объекта
+            parsedData.NAME = nameMatch ? `${nameMatch[1]} "${nameMatch[2]}"` : "";
+            parsedData.INN = innMatch ? innMatch[1] : "";
+            parsedData.KPP = kppMatch ? kppMatch[1] : "";
+            parsedData.OGRN = ogrnMatch ? ogrnMatch[1] : "";
+            parsedData.BOSS_NAME = bossMatch ? bossMatch[1] : "";
+            parsedData.FOUNDATION = foundMatch ? foundMatch[1] : "";
+            
+            parsedData.RS = rsMatch ? rsMatch[1] : "";
+            parsedData.KS = ksMatch ? ksMatch[1] : "";
+            parsedData.BIK = bikMatch ? bikMatch[1] : "";
+            parsedData.BANK = bankMatch ? bankMatch[1].trim() : "";
+
+            renderFormFields();
+        }
+
+        // Отрисовка полей для проверки и правки
+        function renderFormFields() {
+            const container = document.getElementById('dataFields');
+            container.innerHTML = ''; 
+
+            const labels = {
+                NAME: "Название {NAME}",
+                INN: "ИНН {INN}",
+                KPP: "КПП {KPP}",
+                OGRN: "ОГРН {OGRN}",
+                BOSS_NAME: "ФИО рук-ля {BOSS_NAME}",
+                FOUNDATION: "Основание {FOUNDATION}",
+                RS: "Расчетный счет {RS}",
+                KS: "Корр. счет {KS}",
+                BIK: "БИК {BIK}",
+                BANK: "Название банка {BANK}"
+            };
+
+            for (let key in parsedData) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <label class="block text-xs font-semibold text-gray-500 mb-1">${labels[key]}</label>
+                    <input type="text" value='${parsedData[key]}' 
+                           class="w-full p-2 text-sm border border-gray-300 rounded focus:ring-indigo-500 focus:border-indigo-500"
+                           onchange="updateData('${key}', this.value)">
+                `;
+                container.appendChild(div);
+            }
+
+            document.getElementById('previewSection').style.display = 'block';
+        }
+
+        function updateData(key, value) {
+            parsedData[key] = value;
+        }
+
+        // Генерация файла Word
+        function generateDoc() {
+            const fileInput = document.getElementById('templateInput');
+            if (fileInput.files.length === 0) {
+                alert("Пожалуйста, загрузите шаблон Word (.docx) на Шаге 1.");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const content = event.target.result;
+                try {
+                    const zip = new PizZip(content);
+                    const doc = new window.docxtemplater(zip, {
+                        paragraphLoop: true,
+                        linebreaks: true,
+                    });
+
+                    doc.render(parsedData);
+
+                    const out = doc.getZip().generate({
+                        type: "blob",
+                        mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    });
+
+                    saveAs(out, `Договор_${parsedData.NAME || 'Новый'}.docx`);
+
+                } catch (error) {
+                    console.error(error);
+                    alert("Ошибка при генерации! Проверьте, правильно ли расставлены теги в вашем Word-документе.");
+                }
+            };
+
+            reader.readAsBinaryString(file);
+        }
+    </script>
+</body>
+<a href="index.html" class="inline-block mb-4 text-indigo-600 hover:text-indigo-800 font-bold">← На главную</a>
+</html>

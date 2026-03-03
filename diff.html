@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Россильбер | Сравнение договоров</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsdiff/7.0.0/diff.min.js"></script>
+    <style>
+        /* Стили для подсветки изменений */
+        .diff-added {
+            background-color: #dcfce7; /* Светло-зеленый */
+            color: #166534;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .diff-removed {
+            background-color: #fee2e2; /* Светло-красный */
+            color: #991b1b;
+            text-decoration: line-through;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .diff-unchanged {
+            color: #374151; /* Темно-серый */
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-6 md:p-12 min-h-screen flex flex-col">
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 flex-grow w-full">
+        
+        <div class="mb-8 border-b border-gray-200 pb-4 flex justify-between items-end">
+            <div>
+                <h1 class="text-4xl font-extrabold text-indigo-800 tracking-wider uppercase mb-1">Россильбер</h1>
+                <p class="text-xl text-gray-500">Интеллектуальное сравнение договоров</p>
+            </div>
+            <div class="text-sm text-gray-400 bg-gray-100 px-3 py-1 rounded">
+                Strict Confidentiality (Client-Side)
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            
+            <div class="border border-gray-200 rounded-lg p-5 bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">1. Исходный шаблон (Оригинал)</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Загрузить файл .docx</label>
+                    <input type="file" id="fileOriginal" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-white file:border file:border-gray-300 file:text-gray-700 hover:file:bg-gray-50 transition">
+                </div>
+                
+                <div class="relative text-center mb-4">
+                    <span class="bg-gray-50 px-2 text-xs text-gray-400 uppercase tracking-widest relative z-10">ИЛИ вставьте текст</span>
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                </div>
+
+                <textarea id="textOriginal" rows="8" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="Вставьте исходный текст договора сюда..."></textarea>
+            </div>
+
+            <div class="border border-gray-200 rounded-lg p-5 bg-gray-50">
+                <h2 class="text-lg font-bold text-gray-700 mb-4 border-b pb-2">2. Версия контрагента (Измененная)</h2>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-600 mb-1">Загрузить файл .docx</label>
+                    <input type="file" id="fileModified" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-white file:border file:border-gray-300 file:text-gray-700 hover:file:bg-gray-50 transition">
+                </div>
+                
+                <div class="relative text-center mb-4">
+                    <span class="bg-gray-50 px-2 text-xs text-gray-400 uppercase tracking-widest relative z-10">ИЛИ вставьте текст</span>
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-300"></div></div>
+                </div>
+
+                <textarea id="textModified" rows="8" class="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="Вставьте измененный текст договора сюда..."></textarea>
+            </div>
+        </div>
+
+        <div class="text-center mb-10">
+            <button onclick="compareDocuments()" class="bg-indigo-600 text-white px-10 py-4 rounded-lg font-bold text-lg hover:bg-indigo-700 transition shadow-lg w-full md:w-auto">
+                🔍 Найти отличия
+            </button>
+        </div>
+
+        <div id="resultContainer" class="hidden">
+            <h3 class="text-2xl font-bold text-gray-800 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Результат сравнения
+            </h3>
+            <div class="bg-white border-2 border-indigo-100 rounded-lg p-6 shadow-inner whitespace-pre-wrap font-serif text-base leading-relaxed" id="diffOutput">
+                </div>
+        </div>
+
+        <hr class="my-10 border-gray-300">
+
+        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 mb-2">Как пользоваться инструментом:</h3>
+            <p class="text-gray-700">Загрузите ваш исходный шаблон договора в левое окно, а измененную версию контрагента — в правое (или просто скопируйте и вставьте тексты в поля). Нажмите кнопку «Найти отличия». Система автоматически зачеркнет красным цветом удаленные контрагентом слова, а зеленым подсветит новые добавленные условия.</p>
+        </div>
+
+        <div class="mt-8 text-right text-xs text-gray-400">
+            разработал Патрушев Е.
+        </div>
+    </div>
+
+    <script>
+        // Функция чтения файла Word (.docx)
+        function extractTextFromDocx(fileInputId, textAreaId) {
+            const fileInput = document.getElementById(fileInputId);
+            const textArea = document.getElementById(textAreaId);
+
+            fileInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(loadEvent) {
+                    const arrayBuffer = loadEvent.target.result;
+                    
+                    // Используем mammoth для извлечения сырого текста
+                    mammoth.extractRawText({arrayBuffer: arrayBuffer})
+                        .then(function(result) {
+                            textArea.value = result.value; // Вставляем текст в поле
+                            if (result.messages.length > 0) {
+                                console.log("Сообщения Mammoth:", result.messages);
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error("Ошибка при чтении .docx:", err);
+                            alert("Не удалось прочитать файл Word. Убедитесь, что это формат .docx");
+                        });
+                };
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        // Инициализация обработчиков для загрузки файлов
+        extractTextFromDocx('fileOriginal', 'textOriginal');
+        extractTextFromDocx('fileModified', 'textModified');
+
+        // Основная функция сравнения
+        function compareDocuments() {
+            const text1 = document.getElementById('textOriginal').value;
+            const text2 = document.getElementById('textModified').value;
+
+            if (!text1.trim() || !text2.trim()) {
+                alert("Пожалуйста, загрузите оба документа или вставьте их текст для сравнения.");
+                return;
+            }
+
+            // Используем библиотеку JSDiff (пословное сравнение)
+            const diff = window.Diff.diffWordsWithSpace(text1, text2);
+            
+            const displayArea = document.getElementById('diffOutput');
+            const resultContainer = document.getElementById('resultContainer');
+            
+            displayArea.innerHTML = ''; // Очищаем предыдущий результат
+
+            // Проходим по массиву отличий и формируем HTML
+            const fragment = document.createDocumentFragment();
+
+            diff.forEach((part) => {
+                // Заменяем переносы строк на теги <br> для сохранения абзацев
+                let textValue = part.value.replace(/\n/g, '<br>');
+
+                const span = document.createElement('span');
+                span.innerHTML = textValue;
+
+                if (part.added) {
+                    span.className = 'diff-added';
+                } else if (part.removed) {
+                    span.className = 'diff-removed';
+                } else {
+                    span.className = 'diff-unchanged';
+                }
+                
+                fragment.appendChild(span);
+            });
+
+            displayArea.appendChild(fragment);
+            resultContainer.classList.remove('hidden');
+
+            // Плавный скролл к результату
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+<a href="index.html" class="inline-block mb-4 text-indigo-600 hover:text-indigo-800 font-bold">← На главную</a>
+</html>

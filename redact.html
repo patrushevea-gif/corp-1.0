@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Россильбер | Автоматическое обезличивание</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://unpkg.com/pizzip@3.1.4/dist/pizzip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-6 md:p-12 min-h-screen flex flex-col">
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 flex-grow w-full">
+        
+        <div class="mb-8 border-b border-gray-200 pb-4 flex justify-between items-end">
+            <div>
+                <h1 class="text-4xl font-extrabold text-indigo-800 tracking-wider uppercase mb-1">Россильбер</h1>
+                <p class="text-xl text-gray-500">Автоматическое обезличивание документов</p>
+            </div>
+            <div class="text-sm text-gray-400 bg-gray-100 px-3 py-1 rounded">
+                Client-Side Only
+            </div>
+        </div>
+
+        <div class="mb-6 bg-gray-50 p-5 rounded-lg border border-gray-200">
+            <h2 class="text-lg font-bold text-gray-700 mb-4">Какие данные необходимо скрыть?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="checkFio" checked class="w-5 h-5 text-indigo-600 rounded">
+                    <span class="text-gray-700 font-medium">ФИО полностью</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="checkPhone" checked class="w-5 h-5 text-indigo-600 rounded">
+                    <span class="text-gray-700 font-medium">Телефоны и Email</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="checkDocs" checked class="w-5 h-5 text-indigo-600 rounded">
+                    <span class="text-gray-700 font-medium">Паспорта, СНИЛС, Карты</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="checkCompany" checked class="w-5 h-5 text-indigo-600 rounded">
+                    <span class="text-gray-700 font-medium">Компании (Назв., ИНН, ОГРН)</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="checkBank" checked class="w-5 h-5 text-indigo-600 rounded">
+                    <span class="text-gray-700 font-medium">Банковские счета (р/с, к/с)</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="checkAddress" checked class="w-5 h-5 text-indigo-600 rounded">
+                    <span class="text-gray-700 font-medium">Адреса (г., ул., д.)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100 flex items-center justify-between flex-wrap gap-4">
+            <div class="w-full md:w-auto">
+                <label class="block text-sm font-bold text-gray-700 mb-1">Загрузить документ Word (.docx)</label>
+                <input type="file" id="fileInput" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-white file:border file:border-gray-300 file:text-indigo-700 hover:file:bg-gray-50 transition">
+            </div>
+            <button onclick="downloadRedactedDocx()" id="btnDownload" class="hidden bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition shadow-md">
+                📥 Скачать обезличенный Word
+            </button>
+        </div>
+
+        <div class="relative text-center mb-6">
+            <span class="bg-white px-2 text-xs text-gray-400 uppercase tracking-widest relative z-10">ИЛИ РАБОТАЙТЕ С ТЕКСТОМ ВРУЧНУЮ</span>
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-200"></div></div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="flex flex-col">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Исходный текст:</label>
+                <textarea id="inputText" rows="12" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-serif leading-relaxed" placeholder="Вставьте текст или загрузите файл выше..."></textarea>
+                <button onclick="redactTextUI()" class="mt-4 w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-indigo-700 transition shadow-md">
+                    🔒 Обезличить текст
+                </button>
+            </div>
+
+            <div class="flex flex-col">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Безопасный текст (результат):</label>
+                <textarea id="outputText" rows="12" class="w-full p-4 border border-gray-300 rounded-lg bg-gray-50 text-sm font-serif leading-relaxed text-gray-700" readonly placeholder="Здесь появится очищенный текст..."></textarea>
+                <button onclick="copyResult()" class="mt-4 w-full bg-white border-2 border-indigo-600 text-indigo-700 px-6 py-3 rounded-lg font-bold text-lg hover:bg-indigo-50 transition shadow-sm">
+                    📋 Скопировать результат
+                </button>
+            </div>
+        </div>
+
+        <hr class="my-10 border-gray-300">
+
+        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 mb-2">Как пользоваться инструментом:</h3>
+            <p class="text-gray-700 mb-2"><strong>Вариант 1:</strong> Вставьте текст в левое окно, отметьте галочками типы данных для скрытия и нажмите «Обезличить текст». Результат можно скопировать.</p>
+            <p class="text-gray-700 mb-2"><strong>Вариант 2:</strong> Загрузите файл <code>.docx</code> через кнопку выше. Система прочитает его, покажет текст, а также активирует зеленую кнопку для скачивания уже готового, обезличенного Word-файла с сохранением форматирования.</p>
+            <p class="text-sm text-gray-500 mt-3 border-t border-blue-200 pt-2"><em>Примечание: Алгоритм заменяет ФИО, контакты, реквизиты компаний (ИНН, ОГРН, названия ООО/АО), банковские счета и адреса на защитные маркеры (например, [АДРЕС СКРЫТ]). При сложной разметке внутри Word некоторые фрагменты могут быть пропущены, всегда проводите финальный визуальный контроль перед публикацией.</em></p>
+        </div>
+
+        <div class="mt-8 text-right text-xs text-gray-400">
+            разработал Патрушев Е.
+        </div>
+    </div>
+
+    <script>
+        let uploadedZipBinary = null;
+        let originalFileName = "Document.docx";
+
+        // Обработка загрузки файла
+        document.getElementById('fileInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            originalFileName = file.name;
+            const reader = new FileReader();
+
+            // Чтение для вывода текста (через Mammoth)
+            reader.onload = function(loadEvent) {
+                const arrayBuffer = loadEvent.target.result;
+                mammoth.extractRawText({arrayBuffer: arrayBuffer})
+                    .then(function(result) {
+                        document.getElementById('inputText').value = result.value;
+                        document.getElementById('outputText').value = ""; // Очищаем старый результат
+                        document.getElementById('btnDownload').classList.remove('hidden'); // Показываем кнопку скачивания
+                    })
+                    .catch(function(err) {
+                        alert("Не удалось прочитать текст из Word файла.");
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+
+            // Чтение бинарника для перезаписи (через PizZip)
+            const binaryReader = new FileReader();
+            binaryReader.onload = function(e) {
+                uploadedZipBinary = e.target.result;
+            }
+            binaryReader.readAsBinaryString(file);
+        });
+
+        // Функция получения активных регулярных выражений
+        function getActiveRules() {
+            const rules = [];
+
+            if (document.getElementById('checkFio').checked) {
+                rules.push({ pattern: /\b[А-ЯЁ][а-яё]+(?:-[А-ЯЁ][а-яё]+)?\s+[А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+\b/g, rep: '[ФИО СКРЫТО]' });
+            }
+            if (document.getElementById('checkPhone').checked) {
+                rules.push({ pattern: /(?:\+7|8|7)[\s\-]?\(?\d{3}\)?[\s\-]?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}/g, rep: '[ТЕЛЕФОН СКРЫТ]' });
+                rules.push({ pattern: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, rep: '[EMAIL СКРЫТ]' });
+            }
+            if (document.getElementById('checkDocs').checked) {
+                rules.push({ pattern: /\b\d{2}\s*?\d{2}\s*?\d{6}\b/g, rep: '[ПАСПОРТ СКРЫТ]' }); // Паспорт
+                rules.push({ pattern: /\b\d{3}[-\s]\d{3}[-\s]\d{3}[-\s]\d{2}\b/g, rep: '[СНИЛС СКРЫТ]' }); // СНИЛС
+                rules.push({ pattern: /\b(?:\d[ -]*?){13,16}\b/g, rep: '[КАРТА СКРЫТА]' }); // Карты
+            }
+            if (document.getElementById('checkCompany').checked) {
+                rules.push({ pattern: /(?:ООО|АО|ЗАО|ПАО|ИП)\s*["«][^"»<]+["»]/ig, rep: '[КОМПАНИЯ СКРЫТА]' }); // Названия
+                rules.push({ pattern: /\b(?:ИНН|КПП|ОГРН|ОГРНИП)\s*[:.-]?\s*\d{9,15}\b/ig, rep: '[РЕКВИЗИТЫ СКРЫТЫ]' }); // ИНН, ОГРН
+            }
+            if (document.getElementById('checkBank').checked) {
+                rules.push({ pattern: /\b(?:р\/с|к\/с|БИК|расчетный счет|корр\.\s*счет)\s*[:.-]?\s*\d{9,20}\b/ig, rep: '[БАНК СКРЫТ]' }); // Счета
+            }
+            if (document.getElementById('checkAddress').checked) {
+                // Поиск блоков адреса (г., ул., д., кв. и т.д.)
+                rules.push({ pattern: /(?:г\.|город|ул\.|улица|д\.|дом|кв\.|офис|пр-т|проспект|ш\.|шоссе)\s+[^<>\n]{5,60}?(?=\s*(?:<|\n|$|ИНН|ОГРН|Телефон|Email|р\/с))/ig, rep: '[АДРЕС СКРЫТ]' }); 
+            }
+
+            return rules;
+        }
+
+        // Обезличивание в текстовом поле UI
+        function redactTextUI() {
+            let text = document.getElementById('inputText').value;
+            if (!text.trim()) {
+                alert("Пожалуйста, вставьте текст или загрузите документ.");
+                return;
+            }
+
+            const rules = getActiveRules();
+            rules.forEach(rule => {
+                text = text.replace(rule.pattern, rule.rep);
+            });
+
+            document.getElementById('outputText').value = text;
+        }
+
+        // Обезличивание внутри самого файла .docx
+        function downloadRedactedDocx() {
+            if (!uploadedZipBinary) {
+                alert("Сначала загрузите Word файл (.docx)!");
+                return;
+            }
+
+            try {
+                // Загружаем архив
+                const zip = new PizZip(uploadedZipBinary);
+                const rules = getActiveRules();
+
+                // Проходим по всем XML файлам внутри документа (текст, колонтитулы)
+                for (let filename in zip.files) {
+                    if (filename.endsWith('.xml')) {
+                        let xmlContent = zip.files[filename].asText();
+                        
+                        // Применяем правила к содержимому XML
+                        rules.forEach(rule => {
+                            xmlContent = xmlContent.replace(rule.pattern, rule.rep);
+                        });
+                        
+                        zip.file(filename, xmlContent);
+                    }
+                }
+
+                // Генерируем новый файл
+                const out = zip.generate({
+                    type: "blob",
+                    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                });
+
+                // Скачиваем
+                const newName = originalFileName.replace('.docx', '_Обезличен.docx');
+                saveAs(out, newName);
+
+            } catch (error) {
+                console.error(error);
+                alert("Произошла ошибка при обработке файла. Возможно, файл поврежден.");
+            }
+        }
+
+        function copyResult() {
+            const outputText = document.getElementById('outputText');
+            if (!outputText.value.trim()) {
+                alert("Сначала обезличьте текст.");
+                return;
+            }
+            outputText.select();
+            document.execCommand('copy');
+            
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "✅ Скопировано!";
+            btn.classList.replace('text-indigo-700', 'text-green-700');
+            btn.classList.replace('border-indigo-600', 'border-green-600');
+            
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.replace('text-green-700', 'text-indigo-700');
+                btn.classList.replace('border-green-600', 'border-indigo-600');
+            }, 2000);
+        }
+    </script>
+</body>
+<a href="index.html" class="inline-block mb-4 text-indigo-600 hover:text-indigo-800 font-bold">← На главную</a>
+</html>
