@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Россильбер | Конструктор PDF</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <style>
+        /* Специфичные стили для анимации удаления страницы, которые сложно описать чистым Tailwind */
+        .page-item {
+            transition: all 0.2s ease-in-out;
+        }
+        .page-item.deleted {
+            border-color: #ef4444 !important; /* text-red-500 */
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+        .page-item.deleted::after {
+            content: '🗑 УДАЛИТЬ';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #ef4444;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            pointer-events: none;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-6 md:p-12 min-h-screen flex flex-col">
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 flex-grow w-full">
+        
+        <div class="mb-8 border-b border-gray-200 pb-4 flex justify-between items-end">
+            <div>
+                <h1 class="text-4xl font-extrabold text-indigo-800 tracking-wider uppercase mb-1">Россильбер</h1>
+                <p class="text-xl text-gray-500">Конструктор PDF: Удаление страниц</p>
+            </div>
+            <div class="text-sm text-gray-400 bg-gray-100 px-3 py-1 rounded">
+                Client-Side Only
+            </div>
+        </div>
+
+        <div class="mb-8 bg-gray-50 p-6 rounded-lg border border-gray-200 flex flex-col md:flex-row items-center justify-between gap-6">
+            
+            <div class="w-full md:w-1/2">
+                <label class="block text-sm font-bold text-gray-700 mb-2">1. Загрузите PDF-документ</label>
+                <input type="file" id="pdf-upload" accept="application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-white file:border file:border-gray-300 file:text-indigo-700 hover:file:bg-gray-100 transition cursor-pointer">
+            </div>
+
+            <div class="w-full md:w-1/2 flex flex-col items-center md:items-end">
+                <div id="status" class="text-sm font-medium text-gray-500 mb-2 h-5">Ожидание файла...</div>
+                <button id="save-btn" disabled class="w-full md:w-auto bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-indigo-700 transition shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed">
+                    📥 Сохранить готовый PDF
+                </button>
+            </div>
+            
+        </div>
+
+        <div id="instruction-text" class="hidden text-center mb-6">
+            <span class="bg-indigo-50 text-indigo-800 px-4 py-2 rounded-full text-sm font-semibold border border-indigo-100">
+                Кликните по странице, чтобы пометить её на удаление или отменить удаление.
+            </span>
+        </div>
+
+        <div id="pages-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+            </div>
+
+        <hr class="my-10 border-gray-300">
+
+        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 mb-2">Как пользоваться инструментом:</h3>
+            <p class="text-gray-700 mb-2">Загрузите многостраничный PDF-файл. Система создаст миниатюры всех страниц. Просто кликните по тем страницам, которые вам не нужны (они станут серыми и появится значок корзины). Затем нажмите «Сохранить готовый PDF».</p>
+            <p class="text-sm text-gray-500 mt-3 border-t border-blue-200 pt-2"><em>Примечание: Файлы не отправляются на сервер. Вся обработка происходит локально в оперативной памяти вашего браузера, что гарантирует полную конфиденциальность юридических документов.</em></p>
+        </div>
+
+        <div class="mt-8 text-right text-xs text-gray-400">
+            разработал Патрушев Е.
+        </div>
+    </div>
+
+    <script>
+        // Указываем путь к воркеру PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        let originalPdfBytes = null;
+
+        const fileInput = document.getElementById('pdf-upload');
+        const saveBtn = document.getElementById('save-btn');
+        const statusText = document.getElementById('status');
+        const pagesContainer = document.getElementById('pages-container');
+        const instructionText = document.getElementById('instruction-text');
+
+        // Отрисовка файла при загрузке
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            statusText.className = 'text-sm font-medium text-indigo-600 mb-2 h-5 animate-pulse';
+            statusText.innerText = '⏳ Отрисовка страниц...';
+            saveBtn.disabled = true;
+            pagesContainer.innerHTML = '';
+            instructionText.classList.add('hidden');
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                originalPdfBytes = arrayBuffer;
+
+                const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                
+                for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                    const page = await pdfDoc.getPage(pageNum);
+                    
+                    const viewport = page.getViewport({ scale: 1 });
+                    const scale = 200 / viewport.width; 
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.height = scaledViewport.height;
+                    canvas.width = scaledViewport.width;
+                    canvas.className = "w-full border-b border-gray-100 bg-white";
+
+                    await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+
+                    const pageItem = document.createElement('div');
+                    // Стилизуем карточку в стиле Tailwind
+                    pageItem.className = 'page-item relative cursor-pointer border-2 border-transparent rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md hover:-translate-y-1 ring-1 ring-gray-200';
+                    pageItem.dataset.pageIndex = pageNum - 1;
+
+                    pageItem.addEventListener('click', () => {
+                        pageItem.classList.toggle('deleted');
+                    });
+
+                    const label = document.createElement('div');
+                    label.className = 'text-center py-2 bg-gray-50 text-xs font-bold text-gray-600 uppercase tracking-wider';
+                    label.innerText = `Стр. ${pageNum}`;
+
+                    pageItem.appendChild(canvas);
+                    pageItem.appendChild(label);
+                    pagesContainer.appendChild(pageItem);
+                }
+
+                statusText.className = 'text-sm font-bold text-green-600 mb-2 h-5';
+                statusText.innerText = '✅ Готово! Выберите страницы.';
+                saveBtn.disabled = false;
+                instructionText.classList.remove('hidden');
+
+            } catch (error) {
+                console.error(error);
+                statusText.className = 'text-sm font-bold text-red-600 mb-2 h-5';
+                statusText.innerText = '❌ Ошибка при чтении PDF.';
+            }
+        });
+
+        // Сохранение нового файла
+        saveBtn.addEventListener('click', async () => {
+            if (!originalPdfBytes) return;
+
+            saveBtn.disabled = true;
+            statusText.className = 'text-sm font-medium text-indigo-600 mb-2 h-5 animate-pulse';
+            statusText.innerText = '⚙️ Сборка нового файла...';
+
+            try {
+                const pageElements = document.querySelectorAll('.page-item');
+                const pagesToKeep = [];
+                
+                pageElements.forEach(el => {
+                    if (!el.classList.contains('deleted')) {
+                        pagesToKeep.push(parseInt(el.dataset.pageIndex, 10));
+                    }
+                });
+
+                if (pagesToKeep.length === 0) {
+                    statusText.className = 'text-sm font-bold text-red-600 mb-2 h-5';
+                    statusText.innerText = '❌ Ошибка: Вы удалили все страницы.';
+                    saveBtn.disabled = false;
+                    return;
+                }
+
+                const { PDFDocument } = PDFLib;
+                const pdfDoc = await PDFDocument.load(originalPdfBytes);
+                const newPdfDoc = await PDFDocument.create();
+
+                const copiedPages = await newPdfDoc.copyPages(pdfDoc, pagesToKeep);
+                copiedPages.forEach((page) => newPdfDoc.addPage(page));
+
+                const pdfBytes = await newPdfDoc.save();
+                const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                
+                // Получаем оригинальное имя файла
+                const originalName = fileInput.files[0].name;
+                const newName = originalName.replace('.pdf', '_ред.pdf');
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = newName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                statusText.className = 'text-sm font-bold text-green-600 mb-2 h-5';
+                statusText.innerText = '✅ Файл успешно сохранен!';
+            } catch (error) {
+                console.error(error);
+                statusText.className = 'text-sm font-bold text-red-600 mb-2 h-5';
+                statusText.innerText = '❌ Ошибка при сохранении.';
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+<a href="legal.html" class="inline-block mb-4 text-indigo-600 hover:text-indigo-800 font-bold ml-6 md:ml-12 mt-4">← Назад в портал</a>
+</html>
