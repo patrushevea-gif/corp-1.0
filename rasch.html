@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Россильбер | Калькулятор выплат</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans p-6 md:p-12 min-h-screen flex flex-col">
+
+    <div class="max-w-6xl mx-auto bg-white p-8 rounded-xl shadow-lg border border-gray-200 flex-grow w-full">
+        
+        <div class="mb-8 border-b border-gray-200 pb-4 flex justify-between items-end flex-wrap gap-4">
+            <div>
+                <h1 class="text-4xl font-extrabold text-indigo-800 tracking-wider uppercase mb-1">Россильбер</h1>
+                <p class="text-xl text-gray-500">Калькулятор отпускных и больничных</p>
+            </div>
+            <div class="text-sm text-gray-400 bg-gray-100 px-3 py-1 rounded">
+                HR Tools
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            
+            <div class="bg-gray-50 p-6 rounded-lg border border-gray-200 flex flex-col h-full">
+                <h2 class="text-lg font-bold text-gray-700 mb-6 border-b pb-2">1. Данные для расчета</h2>
+                
+                <div class="space-y-5 flex-grow">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Тип расчета</label>
+                        <select id="calcType" onchange="updateUI()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 bg-white shadow-sm transition">
+                            <option value="vacation">Отпускные</option>
+                            <option value="sick">Больничный</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Средняя зарплата «на руки» (в месяц), ₽</label>
+                        <input type="number" id="netSalary" placeholder="Сумма, которую вы получаете на карту" min="0" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 shadow-sm transition">
+                        <p id="periodHint" class="text-xs text-gray-500 mt-2 leading-relaxed">
+                            Укажите среднюю сумму за <strong>последние 12 месяцев</strong>. Если зарплата менялась, постарайтесь указать среднее значение.
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Количество календарных дней</label>
+                        <input type="number" id="days" placeholder="Например: 14" min="1" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 shadow-sm transition">
+                    </div>
+
+                    <div id="experienceGroup" class="hidden">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Страховой стаж (по трудовой книжке)</label>
+                        <select id="experience" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-gray-700 bg-white shadow-sm transition">
+                            <option value="1">8 лет и более (100% от заработка)</option>
+                            <option value="0.8">От 5 до 8 лет (80% от заработка)</option>
+                            <option value="0.6">До 5 лет (60% от заработка)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="calculate()" class="mt-6 w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-indigo-700 transition shadow-md flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H6zm1 2a1 1 0 000 2h6a1 1 0 100-2H7zm6 7a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 0a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1zm-3 0a1 1 0 011 1v3a1 1 0 11-2 0v-3a1 1 0 011-1z" clip-rule="evenodd" />
+                    </svg>
+                    Рассчитать выплату
+                </button>
+            </div>
+
+            <div class="flex flex-col h-full">
+                <h2 class="text-lg font-bold text-gray-700 mb-6 border-b pb-2">2. Результат расчета</h2>
+                
+                <div class="flex-grow flex flex-col justify-center items-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 relative overflow-hidden p-6" id="resultContainer">
+                    
+                    <div id="resultPlaceholder" class="text-center">
+                        <span class="text-gray-400 text-sm block mb-2">Заполните форму слева, чтобы увидеть предварительный расчет вашей выплаты.</span>
+                    </div>
+
+                    <div id="resultData" class="hidden w-full text-center">
+                        <h3 class="text-gray-500 font-bold uppercase tracking-wider text-sm mb-2">К выплате на карту (без НДФЛ)</h3>
+                        <div class="text-5xl font-extrabold text-indigo-700 mb-6 drop-shadow-sm">
+                            <span id="resultNet">0</span> ₽
+                        </div>
+                        
+                        <div class="bg-white border border-gray-200 rounded-lg p-4 w-full text-left shadow-sm">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 border-b pb-2">Детализация начисления</h4>
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-gray-600">Начислено (до вычета налогов):</span>
+                                <span class="text-sm font-bold text-gray-800"><span id="resultGross">0</span> ₽</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Удержан НДФЛ (13%):</span>
+                                <span class="text-sm font-bold text-red-600">-<span id="resultTax">0</span> ₽</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <hr class="my-10 border-gray-300">
+
+        <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+            <h3 class="text-lg font-bold text-blue-800 mb-3">Как работает калькулятор:</h3>
+            <ul class="list-disc list-inside text-gray-700 space-y-2 text-sm">
+                <li><strong>Удобный ввод:</strong> Вы указываете сумму, которую привыкли получать на банковскую карту. Алгоритм сам высчитывает вашу зарплату до вычета налогов (Gross), чтобы применить формулы Трудового Кодекса РФ, а затем показывает финальный результат уже с вычетом 13% НДФЛ.</li>
+                <li><strong>Отпускные:</strong> Расчет ведется по закону — средняя зарплата за последние 12 месяцев делится на среднемесячное число календарных дней (29,3) и умножается на дни отпуска.</li>
+                <li><strong>Больничный:</strong> Для расчета берутся доходы за <strong>два предыдущих календарных года</strong>. Сумма делится на 730 дней, умножается на дни болезни и корректируется в зависимости от вашего страхового стажа (от 60% до 100%).</li>
+                <li class="mt-4 pt-2 border-t border-blue-200 text-xs text-gray-500"><em>Примечание: Данный расчет является ориентировочным. Итоговая сумма в бухгалтерии может отличаться из-за учета премий, исключаемых периодов (командировки, предыдущие больничные) и законодательных лимитов (максимальный размер дневного пособия по больничному листу, устанавливаемый СФР).</em></li>
+            </ul>
+        </div>
+
+        <div class="mt-8 text-right text-xs text-gray-400">
+            разработал Патрушев Е.
+        </div>
+    </div>
+
+    <script>
+        // Функция переключения интерфейса в зависимости от типа расчета
+        function updateUI() {
+            const calcType = document.getElementById('calcType').value;
+            const expGroup = document.getElementById('experienceGroup');
+            const periodHint = document.getElementById('periodHint');
+
+            if (calcType === 'sick') {
+                expGroup.classList.remove('hidden');
+                periodHint.innerHTML = "Укажите среднюю сумму за <strong>2 предыдущих календарных года</strong>. Именно этот период по закону используется для расчета больничного.";
+            } else {
+                expGroup.classList.add('hidden');
+                periodHint.innerHTML = "Укажите среднюю сумму за <strong>последние 12 месяцев</strong>. Если зарплата менялась, постарайтесь указать среднее значение.";
+            }
+            
+            // Сбрасываем результат при смене типа
+            document.getElementById('resultPlaceholder').classList.remove('hidden');
+            document.getElementById('resultData').classList.add('hidden');
+            document.getElementById('resultContainer').classList.replace('bg-white', 'bg-gray-50');
+            document.getElementById('resultContainer').classList.replace('border-indigo-200', 'border-gray-300');
+            document.getElementById('resultContainer').classList.replace('shadow-inner', 'border-dashed');
+        }
+
+        // Основная функция расчета
+        function calculate() {
+            const calcType = document.getElementById('calcType').value;
+            const netSalary = parseFloat(document.getElementById('netSalary').value);
+            const days = parseInt(document.getElementById('days').value);
+            
+            if (!netSalary || !days || netSalary <= 0 || days <= 0) {
+                alert("Пожалуйста, заполните поля зарплаты и количества дней корректными числами.");
+                return;
+            }
+
+            // Перевод Net (на руки) в Gross (до вычета 13%)
+            const grossSalary = netSalary / 0.87; 
+            let grossAmount = 0;
+
+            if (calcType === 'vacation') {
+                const dailyRate = grossSalary / 29.3;
+                grossAmount = dailyRate * days;
+            } else if (calcType === 'sick') {
+                const expMultiplier = parseFloat(document.getElementById('experience').value);
+                const dailyRate = (grossSalary * 24) / 730;
+                grossAmount = dailyRate * days * expMultiplier;
+            }
+
+            // Расчет налогов и суммы на руки
+            const taxAmount = grossAmount * 0.13;
+            const finalNetAmount = grossAmount - taxAmount;
+
+            // Форматирование чисел для красивого вывода
+            const formatCurrency = (num) => {
+                return Math.round(num).toLocaleString('ru-RU');
+            };
+
+            // Обновление DOM
+            document.getElementById('resultNet').innerText = formatCurrency(finalNetAmount);
+            document.getElementById('resultGross').innerText = formatCurrency(grossAmount);
+            document.getElementById('resultTax').innerText = formatCurrency(taxAmount);
+
+            // Переключение видимости блоков результата
+            document.getElementById('resultPlaceholder').classList.add('hidden');
+            document.getElementById('resultData').classList.remove('hidden');
+            
+            // Изменение стиля контейнера результата для акцента
+            const container = document.getElementById('resultContainer');
+            container.classList.replace('bg-gray-50', 'bg-white');
+            container.classList.replace('border-gray-300', 'border-indigo-200');
+            container.classList.replace('border-dashed', 'shadow-inner');
+            container.classList.remove('border-2');
+            container.classList.add('border');
+        }
+    </script>
+</body>
+</html>
