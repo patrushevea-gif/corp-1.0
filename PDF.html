@@ -11,12 +11,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     
     <style>
-        /* Специфичные стили для анимации удаления страницы, которые сложно описать чистым Tailwind */
         .page-item {
             transition: all 0.2s ease-in-out;
         }
         .page-item.deleted {
-            border-color: #ef4444 !important; /* text-red-500 */
+            border-color: #ef4444 !important;
             opacity: 0.5;
             filter: grayscale(100%);
         }
@@ -74,7 +73,7 @@
         </div>
 
         <div id="pages-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            </div>
+        </div>
 
         <hr class="my-10 border-gray-300">
 
@@ -87,10 +86,13 @@
         <div class="mt-8 text-right text-xs text-gray-400">
             разработал Патрушев Е.
         </div>
+        
+        <div class="mt-6 text-left">
+            <a href="legal.html" class="inline-block text-indigo-600 hover:text-indigo-800 font-bold transition">← Назад в портал</a>
+        </div>
     </div>
 
     <script>
-        // Указываем путь к воркеру PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
         let originalPdfBytes = null;
@@ -101,7 +103,6 @@
         const pagesContainer = document.getElementById('pages-container');
         const instructionText = document.getElementById('instruction-text');
 
-        // Отрисовка файла при загрузке
         fileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -134,7 +135,6 @@
                     await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
 
                     const pageItem = document.createElement('div');
-                    // Стилизуем карточку в стиле Tailwind
                     pageItem.className = 'page-item relative cursor-pointer border-2 border-transparent rounded-lg overflow-hidden bg-white shadow-sm hover:shadow-md hover:-translate-y-1 ring-1 ring-gray-200';
                     pageItem.dataset.pageIndex = pageNum - 1;
 
@@ -163,7 +163,6 @@
             }
         });
 
-        // Сохранение нового файла
         saveBtn.addEventListener('click', async () => {
             if (!originalPdfBytes) return;
 
@@ -199,7 +198,6 @@
                 const blob = new Blob([pdfBytes], { type: 'application/pdf' });
                 const url = URL.createObjectURL(blob);
                 
-                // Получаем оригинальное имя файла
                 const originalName = fileInput.files[0].name;
                 const newName = originalName.replace('.pdf', '_ред.pdf');
 
@@ -222,7 +220,5 @@
             }
         });
     </script>
-
 </body>
-<a href="legal.html" class="inline-block mb-4 text-indigo-600 hover:text-indigo-800 font-bold ml-6 md:ml-12 mt-4">← Назад в портал</a>
 </html>
