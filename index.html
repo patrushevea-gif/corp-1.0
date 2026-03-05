@@ -6,91 +6,64 @@
   <title>Россильбер | Корпоративный портал проектов</title>
   <style>
     :root {
-      --bg: #070b16;
-      --bg-2: #0c1324;
-      --card: #111827;
-      --card-2: #1a2234;
-      --line: #27324a;
-      --text: #e9edf5;
-      --muted: #a7afbf;
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #1e232d;
+      --text: #f5f7fb;
+      --muted: #aab3c2;
+      --line: #2c3442;
     }
 
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Inter, "Segoe UI", sans-serif;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #1d2330 0%, var(--bg) 45%);
       color: var(--text);
-      background:
-        radial-gradient(800px 420px at 50% 0%, #18243c 0%, transparent 70%),
-        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%);
       min-height: 100vh;
     }
 
     .container {
       max-width: 1240px;
       margin: 0 auto;
-      padding: 40px 20px 36px;
+      padding: 34px 20px 28px;
     }
 
     .header {
       border-bottom: 1px solid var(--line);
-      padding-bottom: 18px;
-      margin-bottom: 26px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-    }
-
-    .header-copy { flex: 1; }
-
-    .feedback-btn {
-      text-decoration: none;
-      border: 1px solid #3a4a66;
-      color: var(--text);
-      background: rgba(17, 24, 39, .75);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 13px;
-      white-space: nowrap;
-      transition: .2s ease;
-    }
-
-    .feedback-btn:hover {
-      border-color: #4f6790;
-      transform: translateY(-1px);
+      padding-bottom: 20px;
+      margin-bottom: 24px;
     }
 
     h1 {
       margin: 0;
+      letter-spacing: .2em;
       text-transform: uppercase;
-      letter-spacing: .18em;
-      font-size: clamp(38px, 5vw, 56px);
-      line-height: 1;
+      font-size: clamp(28px, 4vw, 44px);
       font-weight: 700;
     }
 
     .subtitle {
       margin-top: 10px;
       color: var(--muted);
-      font-size: clamp(14px, 2vw, 34px);
+      font-size: clamp(14px, 2vw, 18px);
     }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 14px;
     }
 
     .card {
-      min-height: 116px;
+      background: linear-gradient(170deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: 14px;
       text-decoration: none;
       color: inherit;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: linear-gradient(115deg, var(--card) 0%, var(--card-2) 100%);
       padding: 16px;
+      min-height: 118px;
       display: flex;
       gap: 12px;
       transition: .2s ease;
@@ -98,57 +71,40 @@
 
     .card:hover {
       transform: translateY(-2px);
-      border-color: #344360;
-      box-shadow: 0 10px 26px rgba(5, 8, 14, .42);
+      border-color: #3a4659;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, .28);
     }
 
-    .icon {
-      font-size: 30px;
-      line-height: 1;
-      margin-top: 1px;
-    }
+    .icon { font-size: 28px; line-height: 1; }
 
     .card h2 {
       margin: 0;
       font-size: 15px;
-      line-height: 1.2;
-      font-weight: 650;
+      font-weight: 600;
     }
 
     .card p {
       margin: 8px 0 0;
-      font-size: 12px;
-      line-height: 1.35;
       color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     footer {
-      margin-top: 20px;
+      margin-top: 22px;
       border-top: 1px solid var(--line);
+      color: #8893a6;
       padding-top: 14px;
-      color: #7d879b;
       text-align: center;
       font-size: 13px;
     }
-
-    @media (max-width: 1160px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    @media (max-width: 940px)  { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 700px)  { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 520px)  { .grid { grid-template-columns: 1fr; } }
-    @media (max-width: 720px)  { .header { flex-direction: column; align-items: flex-start; } }
   </style>
 </head>
 <body>
   <div class="container">
     <header class="header">
-      <div class="header-copy">
-        <h1>РОССИЛЬБЕР</h1>
-        <div class="subtitle">Корпоративный портал</div>
-      </div>
-      <a
-        class="feedback-btn"
-        href="mailto:patrushev-ea@mail.ru?subject=%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F%20%D1%81%D0%B2%D1%8F%D0%B7%D1%8C%20%D0%BF%D0%BE%20%D0%BA%D0%BE%D1%80%D0%BF%D0%BE%D1%80%D0%B0%D1%82%D0%B8%D0%B2%D0%BD%D0%BE%D0%BC%D1%83%20%D0%BF%D0%BE%D1%80%D1%82%D0%B0%D0%BB%D1%83&body=%D0%98%D0%BC%D1%8F%3A%20%0A%D0%9F%D0%BE%D0%B4%D1%80%D0%B0%D0%B7%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%3A%20%0A%D0%A1%D0%BE%D0%BE%D0%B1%D1%89%D0%B5%D0%BD%D0%B8%D0%B5%3A%20"
-      >Обратная связь</a>
+      <h1>Россильбер</h1>
+      <div class="subtitle">Корпоративный портал</div>
     </header>
 
     <main class="grid" id="departmentsGrid"></main>
@@ -177,6 +133,7 @@
     ];
 
     const grid = document.getElementById('departmentsGrid');
+
     departments.forEach((department) => {
       const card = document.createElement('a');
       card.className = 'card';
