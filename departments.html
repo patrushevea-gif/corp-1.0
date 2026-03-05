@@ -1,315 +1,321 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Россильбер | Направление</title>
-  <style>
-    :root {
-      --bg: #0f1115;
-      --panel: #171a21;
-      --panel-2: #1f2430;
-      --text: #f3f6fb;
-      --muted: #a8b1c1;
-      --line: #2d3442;
-      --accent: #d7b97a;
-      --btn: #d7b97a;
-      --btn-text: #171a21;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "Inter", "Segoe UI", sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at top, #1d2330 0%, var(--bg) 45%);
-      min-height: 100vh;
-    }
-    .wrap {
-      max-width: 1160px;
-      margin: 0 auto;
-      padding: 30px 20px;
-    }
-    .top-line {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 16px;
-      margin-bottom: 26px;
-    }
-    .back {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 14px;
-    }
-    .back:hover { color: var(--text); }
-    h1 {
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: .18em;
-      font-size: clamp(24px, 4vw, 42px);
-      font-weight: 700;
-    }
-    .subtitle { margin-top: 8px; color: var(--muted); }
-    .toolbar {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 16px;
-      align-items: center;
-    }
-    .badge {
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,.02);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    button {
-      border: 0;
-      background: var(--btn);
-      color: var(--btn-text);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    button:hover { filter: brightness(1.04); }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 14px;
-    }
-    .card {
-      background: linear-gradient(165deg, var(--panel) 0%, var(--panel-2) 100%);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      text-decoration: none;
-      color: inherit;
-      min-height: 176px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: .2s ease;
-    }
-    .card:hover { transform: translateY(-2px); border-color: #3b465a; }
-    .icon { font-size: 27px; }
-    .card h3 { margin: 0; font-size: 16px; }
-    .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
-    .hint { margin-top: auto; font-size: 12px; color: var(--accent); }
-
-    dialog {
-      width: min(560px, 94vw);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #141922;
-      color: var(--text);
-      padding: 0;
-    }
-    dialog::backdrop { background: rgba(0,0,0,.55); }
-    .modal-body { padding: 18px; }
-    .modal-head { display: flex; justify-content: space-between; align-items: center; }
-    .modal-head h3 { margin: 0; }
-    .close { background: transparent; color: var(--muted); padding: 0; font-size: 22px; }
-    .field { margin-top: 12px; }
-    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
-    input, textarea {
-      width: 100%;
-      background: #0f131b;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      color: var(--text);
-      padding: 10px 11px;
-      font-size: 14px;
-    }
-    textarea { min-height: 86px; resize: vertical; }
-    .actions { margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; }
-    .ghost { background: #2a3240; color: var(--text); }
-    .empty {
-      border: 1px dashed var(--line);
-      border-radius: 12px;
-      padding: 18px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="top-line">
-      <a class="back" href="index.html">← На главную</a>
-      <div id="counter" class="badge"></div>
-    </div>
-
-    <header>
-      <h1 id="brand">Россильбер</h1>
-      <p id="subtitle" class="subtitle"></p>
-    </header>
-
-    <div class="toolbar">
-      <div class="badge">Базовые и пользовательские проекты хранятся отдельно по каждому направлению</div>
-      <button id="addProjectBtn" type="button">+ Добавить проект</button>
-    </div>
-
-    <main id="projectsGrid" class="grid"></main>
-    <div id="emptyState" class="empty" hidden>Пока нет проектов. Добавьте первый проект кнопкой «Добавить проект».</div>
-  </div>
-
-  <dialog id="projectDialog">
-    <form class="modal-body" id="projectForm">
-      <div class="modal-head">
-        <h3>Новый проект</h3>
-        <button class="close" type="button" id="closeDialog">×</button>
-      </div>
-
-      <div class="field">
-        <label for="title">Название проекта</label>
-        <input id="title" name="title" required maxlength="70" placeholder="Например: Аналитика договоров">
-      </div>
-
-      <div class="field">
-        <label for="description">Описание</label>
-        <textarea id="description" name="description" required maxlength="220" placeholder="Коротко: что делает проект"></textarea>
-      </div>
-
-      <div class="field">
-        <label for="url">Ссылка (файл/URL)</label>
-        <input id="url" name="url" required placeholder="Например: my-project.html или https://...">
-      </div>
-
-      <div class="field">
-        <label for="icon">Иконка (emoji)</label>
-        <input id="icon" name="icon" maxlength="4" placeholder="🧩">
-      </div>
-
-      <div class="actions">
-        <button type="button" class="ghost" id="cancelBtn">Отмена</button>
-        <button type="submit">Сохранить</button>
-      </div>
-    </form>
-  </dialog>
-
-  <script>
-    const DEPARTMENTS = {
-      beloretsk: { name: 'Производство Белорецк', subtitle: 'Проекты производственной площадки', icon: '🏭', projects: [] },
-      technopark: { name: 'Производство Технопарк', subtitle: 'Проекты технологической площадки', icon: '🏗️', projects: [] },
-      rnd: { name: 'RnD и Технология', subtitle: 'Исследования и технологические инициативы', icon: '🔬', projects: [] },
-      sales: { name: 'Продажи', subtitle: 'Проекты коммерческого блока', icon: '📈', projects: [] },
-      supply: { name: 'Снабжение', subtitle: 'Закупки, логистика и поставки', icon: '📦', projects: [] },
-      development: { name: 'Развитие', subtitle: 'Стратегические и проектные инициативы', icon: '🚀', projects: [] },
-      efficiency: { name: 'Операционная эффективность', subtitle: 'Оптимизация процессов и ресурсов', icon: '⚙️', projects: [] },
-      hr: {
-        name: 'Персонал',
-        subtitle: 'Корпоративный портал департамента персонала',
-        icon: '👥',
-        projects: [
-          { title: 'Калькулятор выплат', description: 'Быстрый расчет отпускных и больничных на основе средней заработной платы.', url: 'rasch.html', icon: '🧮' }
-        ]
-      },
-      finance: { name: 'Финансы', subtitle: 'Финансовая отчетность и контроль', icon: '💰', projects: [] },
-      security: { name: 'Безопасность', subtitle: 'Защита активов и контроль рисков', icon: '🛡️', projects: [] },
-      hse: { name: 'СОТПБ и ЭБ', subtitle: 'Охрана труда, безопасность и экология', icon: '🦺', projects: [] },
-      legal: {
-        name: 'Право',
-        subtitle: 'Корпоративный портал юридического департамента',
-        icon: '⚖️',
-        projects: [
-          { title: 'Автозаполнение', description: 'Автоматическая вставка реквизитов из карточки в Word-шаблон договора.', url: 'filler.html', icon: '📝' },
-          { title: 'Сравнение версий', description: 'Поиск удаленных и добавленных пунктов между версиями документа.', url: 'diff.html', icon: '🔍' },
-          { title: 'Обезличивание', description: 'Удаление персональных данных для публикации и передачи документов.', url: 'redact.html', icon: '🔒' },
-          { title: 'Калькулятор пеней', description: 'Расчет неустойки с формулой для искового заявления.', url: 'calculator.html', icon: '🧮' },
-          { title: 'Мониторинг', description: 'Проверка ИНН по базам арбитража, банкротства и исполнительных производств.', url: 'monitor.html', icon: '🏢' },
-          { title: 'Распознавание (OCR)', description: 'Перевод сканов и PDF в редактируемый текст без отправки на сервер.', url: 'ocr.html', icon: '👁️' },
-          { title: 'Конструктор PDF', description: 'Разделение документов и удаление страниц прямо в браузере.', url: 'pdf.html', icon: '📑' }
-        ]
-      },
-      it: { name: 'ИТ', subtitle: 'Цифровая инфраструктура и поддержка', icon: '💻', projects: [] },
-      admin: { name: 'Администрирование', subtitle: 'Офисные сервисы и внутренние процессы', icon: '📁', projects: [] },
-      tech_policy: { name: 'Техническая политика', subtitle: 'Модернизация, стандарты и развитие технологий', icon: '🛠️', projects: [] },
-      ai: {
-        name: 'Искусственный интеллект',
-        subtitle: 'Направление ИИ и автоматизации',
-        icon: '🧠',
-        projects: [
-          { title: 'Универсальный конвертер', description: 'Безопасная конвертация кода и файлов различных форматов.', url: 'konvert.html', icon: '🔄' }
-        ]
-      }
-    };
-
-    const params = new URLSearchParams(window.location.search);
-    const deptKey = params.get('dept') || 'legal';
-    const dept = DEPARTMENTS[deptKey] || DEPARTMENTS.legal;
-
-    const storageKey = `corp_projects_${deptKey}`;
-
-    document.title = `Россильбер | ${dept.name}`;
-    document.getElementById('subtitle').textContent = `${dept.icon} ${dept.subtitle}`;
-    document.getElementById('counter').textContent = `Направление: ${dept.name}`;
-
-    const grid = document.getElementById('projectsGrid');
-    const emptyState = document.getElementById('emptyState');
-
-    function renderProjects() {
-      grid.innerHTML = '';
-      const currentCustom = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      const merged = [...dept.projects, ...currentCustom];
-
-      if (!merged.length) {
-        emptyState.hidden = false;
-        return;
-      }
-
-      emptyState.hidden = true;
-
-      merged.forEach((project) => {
-        const card = document.createElement('a');
-        card.className = 'card';
-        card.href = project.url;
-        card.target = project.url.startsWith('http') ? '_blank' : '_self';
-        card.rel = project.url.startsWith('http') ? 'noopener noreferrer' : '';
-        card.innerHTML = `
-          <div class="icon">${project.icon || '🧩'}</div>
-          <h3>${project.title}</h3>
-          <p>${project.description}</p>
-          <div class="hint">Открыть проект →</div>
-        `;
-        grid.appendChild(card);
-      });
-    }
-
-    const dialog = document.getElementById('projectDialog');
-    const form = document.getElementById('projectForm');
-    const addBtn = document.getElementById('addProjectBtn');
-
-    addBtn.addEventListener('click', () => dialog.showModal());
-    document.getElementById('closeDialog').addEventListener('click', () => dialog.close());
-    document.getElementById('cancelBtn').addEventListener('click', () => dialog.close());
-
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      const data = new FormData(form);
-      const project = {
-        title: data.get('title').trim(),
-        description: data.get('description').trim(),
-        url: data.get('url').trim(),
-        icon: (data.get('icon') || '').trim() || '🧩'
-      };
-
-      const projects = JSON.parse(localStorage.getItem(storageKey) || '[]');
-      projects.push(project);
-      localStorage.setItem(storageKey, JSON.stringify(projects));
-
-      form.reset();
-      dialog.close();
-      renderProjects();
-    });
-
-    renderProjects();
-  </script>
-</body>
-</html>
+diff --git a/departments.html b/departments.html
+new file mode 100644
+index 0000000000000000000000000000000000000000..cf2445692eee56d0cb62569f163b928b98d087c7
+--- /dev/null
++++ b/departments.html
+@@ -0,0 +1,315 @@
++<!DOCTYPE html>
++<html lang="ru">
++<head>
++  <meta charset="UTF-8">
++  <meta name="viewport" content="width=device-width, initial-scale=1.0">
++  <title>Россильбер | Направление</title>
++  <style>
++    :root {
++      --bg: #0f1115;
++      --panel: #171a21;
++      --panel-2: #1f2430;
++      --text: #f3f6fb;
++      --muted: #a8b1c1;
++      --line: #2d3442;
++      --accent: #d7b97a;
++      --btn: #d7b97a;
++      --btn-text: #171a21;
++    }
++    * { box-sizing: border-box; }
++    body {
++      margin: 0;
++      font-family: "Inter", "Segoe UI", sans-serif;
++      color: var(--text);
++      background: radial-gradient(circle at top, #1d2330 0%, var(--bg) 45%);
++      min-height: 100vh;
++    }
++    .wrap {
++      max-width: 1160px;
++      margin: 0 auto;
++      padding: 30px 20px;
++    }
++    .top-line {
++      display: flex;
++      justify-content: space-between;
++      align-items: center;
++      flex-wrap: wrap;
++      gap: 12px;
++      border-bottom: 1px solid var(--line);
++      padding-bottom: 16px;
++      margin-bottom: 26px;
++    }
++    .back {
++      color: var(--muted);
++      text-decoration: none;
++      font-size: 14px;
++    }
++    .back:hover { color: var(--text); }
++    h1 {
++      margin: 0;
++      text-transform: uppercase;
++      letter-spacing: .18em;
++      font-size: clamp(24px, 4vw, 42px);
++      font-weight: 700;
++    }
++    .subtitle { margin-top: 8px; color: var(--muted); }
++    .toolbar {
++      display: flex;
++      justify-content: space-between;
++      gap: 10px;
++      flex-wrap: wrap;
++      margin-bottom: 16px;
++      align-items: center;
++    }
++    .badge {
++      border: 1px solid var(--line);
++      background: rgba(255,255,255,.02);
++      border-radius: 999px;
++      padding: 8px 12px;
++      font-size: 12px;
++      color: var(--muted);
++    }
++    button {
++      border: 0;
++      background: var(--btn);
++      color: var(--btn-text);
++      border-radius: 10px;
++      padding: 10px 14px;
++      font-weight: 700;
++      cursor: pointer;
++    }
++    button:hover { filter: brightness(1.04); }
++    .grid {
++      display: grid;
++      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
++      gap: 14px;
++    }
++    .card {
++      background: linear-gradient(165deg, var(--panel) 0%, var(--panel-2) 100%);
++      border: 1px solid var(--line);
++      border-radius: 14px;
++      padding: 14px;
++      text-decoration: none;
++      color: inherit;
++      min-height: 176px;
++      display: flex;
++      flex-direction: column;
++      gap: 10px;
++      transition: .2s ease;
++    }
++    .card:hover { transform: translateY(-2px); border-color: #3b465a; }
++    .icon { font-size: 27px; }
++    .card h3 { margin: 0; font-size: 16px; }
++    .card p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
++    .hint { margin-top: auto; font-size: 12px; color: var(--accent); }
++
++    dialog {
++      width: min(560px, 94vw);
++      border: 1px solid var(--line);
++      border-radius: 14px;
++      background: #141922;
++      color: var(--text);
++      padding: 0;
++    }
++    dialog::backdrop { background: rgba(0,0,0,.55); }
++    .modal-body { padding: 18px; }
++    .modal-head { display: flex; justify-content: space-between; align-items: center; }
++    .modal-head h3 { margin: 0; }
++    .close { background: transparent; color: var(--muted); padding: 0; font-size: 22px; }
++    .field { margin-top: 12px; }
++    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
++    input, textarea {
++      width: 100%;
++      background: #0f131b;
++      border: 1px solid var(--line);
++      border-radius: 8px;
++      color: var(--text);
++      padding: 10px 11px;
++      font-size: 14px;
++    }
++    textarea { min-height: 86px; resize: vertical; }
++    .actions { margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; }
++    .ghost { background: #2a3240; color: var(--text); }
++    .empty {
++      border: 1px dashed var(--line);
++      border-radius: 12px;
++      padding: 18px;
++      color: var(--muted);
++      font-size: 14px;
++    }
++  </style>
++</head>
++<body>
++  <div class="wrap">
++    <div class="top-line">
++      <a class="back" href="index.html">← На главную</a>
++      <div id="counter" class="badge"></div>
++    </div>
++
++    <header>
++      <h1 id="brand">Россильбер</h1>
++      <p id="subtitle" class="subtitle"></p>
++    </header>
++
++    <div class="toolbar">
++      <div class="badge">Базовые и пользовательские проекты хранятся отдельно по каждому направлению</div>
++      <button id="addProjectBtn" type="button">+ Добавить проект</button>
++    </div>
++
++    <main id="projectsGrid" class="grid"></main>
++    <div id="emptyState" class="empty" hidden>Пока нет проектов. Добавьте первый проект кнопкой «Добавить проект».</div>
++  </div>
++
++  <dialog id="projectDialog">
++    <form class="modal-body" id="projectForm">
++      <div class="modal-head">
++        <h3>Новый проект</h3>
++        <button class="close" type="button" id="closeDialog">×</button>
++      </div>
++
++      <div class="field">
++        <label for="title">Название проекта</label>
++        <input id="title" name="title" required maxlength="70" placeholder="Например: Аналитика договоров">
++      </div>
++
++      <div class="field">
++        <label for="description">Описание</label>
++        <textarea id="description" name="description" required maxlength="220" placeholder="Коротко: что делает проект"></textarea>
++      </div>
++
++      <div class="field">
++        <label for="url">Ссылка (файл/URL)</label>
++        <input id="url" name="url" required placeholder="Например: my-project.html или https://...">
++      </div>
++
++      <div class="field">
++        <label for="icon">Иконка (emoji)</label>
++        <input id="icon" name="icon" maxlength="4" placeholder="🧩">
++      </div>
++
++      <div class="actions">
++        <button type="button" class="ghost" id="cancelBtn">Отмена</button>
++        <button type="submit">Сохранить</button>
++      </div>
++    </form>
++  </dialog>
++
++  <script>
++    const DEPARTMENTS = {
++      beloretsk: { name: 'Производство Белорецк', subtitle: 'Проекты производственной площадки', icon: '🏭', projects: [] },
++      technopark: { name: 'Производство Технопарк', subtitle: 'Проекты технологической площадки', icon: '🏗️', projects: [] },
++      rnd: { name: 'RnD и Технология', subtitle: 'Исследования и технологические инициативы', icon: '🔬', projects: [] },
++      sales: { name: 'Продажи', subtitle: 'Проекты коммерческого блока', icon: '📈', projects: [] },
++      supply: { name: 'Снабжение', subtitle: 'Закупки, логистика и поставки', icon: '📦', projects: [] },
++      development: { name: 'Развитие', subtitle: 'Стратегические и проектные инициативы', icon: '🚀', projects: [] },
++      efficiency: { name: 'Операционная эффективность', subtitle: 'Оптимизация процессов и ресурсов', icon: '⚙️', projects: [] },
++      hr: {
++        name: 'Персонал',
++        subtitle: 'Корпоративный портал департамента персонала',
++        icon: '👥',
++        projects: [
++          { title: 'Калькулятор выплат', description: 'Быстрый расчет отпускных и больничных на основе средней заработной платы.', url: 'rasch.html', icon: '🧮' }
++        ]
++      },
++      finance: { name: 'Финансы', subtitle: 'Финансовая отчетность и контроль', icon: '💰', projects: [] },
++      security: { name: 'Безопасность', subtitle: 'Защита активов и контроль рисков', icon: '🛡️', projects: [] },
++      hse: { name: 'СОТПБ и ЭБ', subtitle: 'Охрана труда, безопасность и экология', icon: '🦺', projects: [] },
++      legal: {
++        name: 'Право',
++        subtitle: 'Корпоративный портал юридического департамента',
++        icon: '⚖️',
++        projects: [
++          { title: 'Автозаполнение', description: 'Автоматическая вставка реквизитов из карточки в Word-шаблон договора.', url: 'filler.html', icon: '📝' },
++          { title: 'Сравнение версий', description: 'Поиск удаленных и добавленных пунктов между версиями документа.', url: 'diff.html', icon: '🔍' },
++          { title: 'Обезличивание', description: 'Удаление персональных данных для публикации и передачи документов.', url: 'redact.html', icon: '🔒' },
++          { title: 'Калькулятор пеней', description: 'Расчет неустойки с формулой для искового заявления.', url: 'calculator.html', icon: '🧮' },
++          { title: 'Мониторинг', description: 'Проверка ИНН по базам арбитража, банкротства и исполнительных производств.', url: 'monitor.html', icon: '🏢' },
++          { title: 'Распознавание (OCR)', description: 'Перевод сканов и PDF в редактируемый текст без отправки на сервер.', url: 'ocr.html', icon: '👁️' },
++          { title: 'Конструктор PDF', description: 'Разделение документов и удаление страниц прямо в браузере.', url: 'pdf.html', icon: '📑' }
++        ]
++      },
++      it: { name: 'ИТ', subtitle: 'Цифровая инфраструктура и поддержка', icon: '💻', projects: [] },
++      admin: { name: 'Администрирование', subtitle: 'Офисные сервисы и внутренние процессы', icon: '📁', projects: [] },
++      tech_policy: { name: 'Техническая политика', subtitle: 'Модернизация, стандарты и развитие технологий', icon: '🛠️', projects: [] },
++      ai: {
++        name: 'Искусственный интеллект',
++        subtitle: 'Направление ИИ и автоматизации',
++        icon: '🧠',
++        projects: [
++          { title: 'Универсальный конвертер', description: 'Безопасная конвертация кода и файлов различных форматов.', url: 'konvert.html', icon: '🔄' }
++        ]
++      }
++    };
++
++    const params = new URLSearchParams(window.location.search);
++    const deptKey = params.get('dept') || 'legal';
++    const dept = DEPARTMENTS[deptKey] || DEPARTMENTS.legal;
++
++    const storageKey = `corp_projects_${deptKey}`;
++
++    document.title = `Россильбер | ${dept.name}`;
++    document.getElementById('subtitle').textContent = `${dept.icon} ${dept.subtitle}`;
++    document.getElementById('counter').textContent = `Направление: ${dept.name}`;
++
++    const grid = document.getElementById('projectsGrid');
++    const emptyState = document.getElementById('emptyState');
++
++    function renderProjects() {
++      grid.innerHTML = '';
++      const currentCustom = JSON.parse(localStorage.getItem(storageKey) || '[]');
++      const merged = [...dept.projects, ...currentCustom];
++
++      if (!merged.length) {
++        emptyState.hidden = false;
++        return;
++      }
++
++      emptyState.hidden = true;
++
++      merged.forEach((project) => {
++        const card = document.createElement('a');
++        card.className = 'card';
++        card.href = project.url;
++        card.target = project.url.startsWith('http') ? '_blank' : '_self';
++        card.rel = project.url.startsWith('http') ? 'noopener noreferrer' : '';
++        card.innerHTML = `
++          <div class="icon">${project.icon || '🧩'}</div>
++          <h3>${project.title}</h3>
++          <p>${project.description}</p>
++          <div class="hint">Открыть проект →</div>
++        `;
++        grid.appendChild(card);
++      });
++    }
++
++    const dialog = document.getElementById('projectDialog');
++    const form = document.getElementById('projectForm');
++    const addBtn = document.getElementById('addProjectBtn');
++
++    addBtn.addEventListener('click', () => dialog.showModal());
++    document.getElementById('closeDialog').addEventListener('click', () => dialog.close());
++    document.getElementById('cancelBtn').addEventListener('click', () => dialog.close());
++
++    form.addEventListener('submit', (event) => {
++      event.preventDefault();
++      const data = new FormData(form);
++      const project = {
++        title: data.get('title').trim(),
++        description: data.get('description').trim(),
++        url: data.get('url').trim(),
++        icon: (data.get('icon') || '').trim() || '🧩'
++      };
++
++      const projects = JSON.parse(localStorage.getItem(storageKey) || '[]');
++      projects.push(project);
++      localStorage.setItem(storageKey, JSON.stringify(projects));
++
++      form.reset();
++      dialog.close();
++      renderProjects();
++    });
++
++    renderProjects();
++  </script>
++</body>
++</html>
