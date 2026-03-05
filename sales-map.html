@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Визуализация клиентов на карте</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <style>
+    :root {
+      --bg: #070b16;
+      --bg-2: #0c1324;
+      --card: #121a2b;
+      --card-2: #1a2234;
+      --line: #27324a;
+      --text: #e9edf5;
+      --muted: #a7afbf;
+      --accent: #e4c981;
+      --danger: #f87171;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 440px at 50% 0%, #18243c 0%, transparent 72%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+
+    .topline a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: clamp(22px, 2vw, 34px);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .layout {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 4fr 1fr;
+      gap: 14px;
+      min-height: calc(100vh - 180px);
+    }
+
+    .map-card, .panel {
+      background: linear-gradient(115deg, var(--card) 0%, var(--card-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 620px;
+    }
+
+    .panel {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0d1423;
+      color: var(--text);
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #101521;
+    }
+
+    .btn-primary:hover { filter: brightness(1.05); }
+
+    .list {
+      max-height: 310px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .client-row {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      background: rgba(13, 20, 35, .45);
+    }
+
+    .client-row b { display: block; font-size: 13px; }
+    .client-row span { color: var(--muted); font-size: 12px; }
+
+    .delete {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid #7f2d2d;
+      border-radius: 8px;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .marker-pin {
+      width: 22px;
+      height: 22px;
+      border-radius: 50% 50% 50% 0;
+      background: linear-gradient(140deg, #f8d37b 0%, #d69f33 100%);
+      transform: rotate(-45deg);
+      border: 2px solid #fff2ca;
+      box-shadow: 0 0 0 8px rgba(228, 201, 129, .2);
+    }
+
+    @media (max-width: 1050px) {
+      .layout { grid-template-columns: 1fr; }
+      #map { min-height: 480px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topline">
+      <a href="departments.html?dept=sales">← Назад в департамент «Продажи»</a>
+      <span style="color:#a7afbf;font-size:12px;">Проект: Визуализация клиентов на карте</span>
+    </div>
+
+    <h1 class="title">Визуализация клиентов на карте</h1>
+    <p class="subtitle">Карта РФ и стран СНГ + быстрый ввод/удаление заводов клиентов.</p>
+
+    <div class="layout">
+      <section class="map-card">
+        <div id="map"></div>
+      </section>
+
+      <aside class="panel">
+        <div>
+          <h2>Добавить клиента</h2>
+          <p class="hint">Укажите завод и город — отметка появится на карте мгновенно.</p>
+        </div>
+
+        <div class="field">
+          <label for="plantName">Наименование завода</label>
+          <input id="plantName" placeholder="Например, ООО Металл Сервис" maxlength="90">
+        </div>
+
+        <div class="field">
+          <label for="citySelect">Город / страна</label>
+          <select id="citySelect"></select>
+        </div>
+
+        <button class="btn btn-primary" id="addClientBtn">Внести на карту</button>
+
+        <div>
+          <h2>Клиенты на карте</h2>
+          <div id="clientsList" class="list"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const CITY_OPTIONS = [
+      { label: 'Москва, Россия', lat: 55.7558, lng: 37.6176 },
+      { label: 'Санкт-Петербург, Россия', lat: 59.9311, lng: 30.3609 },
+      { label: 'Казань, Россия', lat: 55.7963, lng: 49.1088 },
+      { label: 'Екатеринбург, Россия', lat: 56.8389, lng: 60.6057 },
+      { label: 'Новосибирск, Россия', lat: 55.0084, lng: 82.9357 },
+      { label: 'Владивосток, Россия', lat: 43.1155, lng: 131.8855 },
+      { label: 'Минск, Беларусь', lat: 53.9006, lng: 27.559 },
+      { label: 'Астана, Казахстан', lat: 51.1694, lng: 71.4491 },
+      { label: 'Алматы, Казахстан', lat: 43.2389, lng: 76.8897 },
+      { label: 'Бишкек, Кыргызстан', lat: 42.8746, lng: 74.5698 },
+      { label: 'Ташкент, Узбекистан', lat: 41.2995, lng: 69.2401 },
+      { label: 'Баку, Азербайджан', lat: 40.4093, lng: 49.8671 },
+      { label: 'Ереван, Армения', lat: 40.1792, lng: 44.4991 },
+      { label: 'Душанбе, Таджикистан', lat: 38.5598, lng: 68.787 },
+      { label: 'Ашхабад, Туркменистан', lat: 37.9601, lng: 58.3261 }
+    ];
+
+    const STORAGE_KEY = 'sales_map_clients';
+    const citySelect = document.getElementById('citySelect');
+    const clientsList = document.getElementById('clientsList');
+
+    CITY_OPTIONS.forEach((city, index) => {
+      const option = document.createElement('option');
+      option.value = String(index);
+      option.textContent = city.label;
+      citySelect.appendChild(option);
+    });
+
+    const map = L.map('map', { zoomControl: true }).setView([52.2, 66], 3);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 8,
+      minZoom: 3,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const markers = new Map();
+
+    const markerIcon = L.divIcon({
+      className: '',
+      html: '<div class="marker-pin"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 24],
+      popupAnchor: [0, -22]
+    });
+
+    function loadClients() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+
+    function saveClients(clients) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+    }
+
+    function drawMarkers(clients) {
+      markers.forEach((marker) => marker.remove());
+      markers.clear();
+
+      clients.forEach((client) => {
+        const marker = L.marker([client.lat, client.lng], { icon: markerIcon }).addTo(map);
+        marker.bindPopup(`<b>${client.name}</b><br>${client.city}`);
+        markers.set(client.id, marker);
+      });
+    }
+
+    function renderList(clients) {
+      clientsList.innerHTML = '';
+      if (!clients.length) {
+        clientsList.innerHTML = '<div class="empty">Пока нет клиентов. Добавьте первый завод справа.</div>';
+        return;
+      }
+
+      clients.forEach((client) => {
+        const row = document.createElement('div');
+        row.className = 'client-row';
+        row.innerHTML = `
+          <div>
+            <b>${client.name}</b>
+            <span>${client.city}</span>
+          </div>
+          <button class="delete" data-id="${client.id}">Убрать</button>
+        `;
+        clientsList.appendChild(row);
+      });
+    }
+
+    function refresh() {
+      const clients = loadClients();
+      drawMarkers(clients);
+      renderList(clients);
+    }
+
+    document.getElementById('addClientBtn').addEventListener('click', () => {
+      const plantName = document.getElementById('plantName').value.trim();
+      const city = CITY_OPTIONS[Number(citySelect.value) || 0];
+
+      if (!plantName) {
+        alert('Введите наименование завода');
+        return;
+      }
+
+      const clients = loadClients();
+      const newClient = {
+        id: crypto.randomUUID(),
+        name: plantName,
+        city: city.label,
+        lat: city.lat,
+        lng: city.lng
+      };
+
+      clients.push(newClient);
+      saveClients(clients);
+      document.getElementById('plantName').value = '';
+      refresh();
+
+      if (markers.has(newClient.id)) {
+        map.flyTo([newClient.lat, newClient.lng], Math.max(map.getZoom(), 4), { duration: 0.8 });
+        markers.get(newClient.id).openPopup();
+      }
+    });
+
+    clientsList.addEventListener('click', (event) => {
+      const button = event.target.closest('.delete');
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const clients = loadClients().filter((client) => client.id !== id);
+      saveClients(clients);
+      refresh();
+    });
+
+    refresh();
+  </script>
+</body>
+</html>
