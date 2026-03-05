@@ -1,195 +1,352 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Россильбер | Корпоративный портал</title>
-  <style>
-    :root {
-      --bg: #070b16;
-      --bg-2: #0c1324;
-      --card: #111827;
-      --card-2: #1a2234;
-      --line: #27324a;
-      --text: #e9edf5;
-      --muted: #a7afbf;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Inter, "Segoe UI", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(800px 420px at 50% 0%, #18243c 0%, transparent 70%),
-        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%);
-      min-height: 100vh;
-    }
-
-    .container {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 40px 20px 36px;
-    }
-
-    .header {
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 18px;
-      margin-bottom: 26px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
-    }
-
-    .header-copy { flex: 1; }
-
-    .feedback-btn {
-      text-decoration: none;
-      border: 1px solid #3a4a66;
-      color: var(--text);
-      background: rgba(17, 24, 39, .75);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 13px;
-      white-space: nowrap;
-      transition: .2s ease;
-    }
-
-    .feedback-btn:hover {
-      border-color: #4f6790;
-      transform: translateY(-1px);
-    }
-
-    h1 {
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: .18em;
-      font-size: clamp(38px, 5vw, 56px);
-      line-height: 1;
-      font-weight: 700;
-    }
-
-    .subtitle {
-      margin-top: 10px;
-      color: var(--muted);
-      font-size: clamp(14px, 2vw, 34px);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .card {
-      min-height: 116px;
-      text-decoration: none;
-      color: inherit;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: linear-gradient(115deg, var(--card) 0%, var(--card-2) 100%);
-      padding: 16px;
-      display: flex;
-      gap: 12px;
-      transition: .2s ease;
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      border-color: #344360;
-      box-shadow: 0 10px 26px rgba(5, 8, 14, .42);
-    }
-
-    .icon {
-      font-size: 30px;
-      line-height: 1;
-      margin-top: 1px;
-    }
-
-    .card h2 {
-      margin: 0;
-      font-size: 15px;
-      line-height: 1.2;
-      font-weight: 650;
-    }
-
-    .card p {
-      margin: 8px 0 0;
-      font-size: 12px;
-      line-height: 1.35;
-      color: var(--muted);
-    }
-
-    footer {
-      margin-top: 20px;
-      border-top: 1px solid var(--line);
-      padding-top: 14px;
-      color: #7d879b;
-      text-align: center;
-      font-size: 13px;
-    }
-
-    @media (max-width: 1160px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    @media (max-width: 940px)  { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 700px)  { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 520px)  { .grid { grid-template-columns: 1fr; } }
-    @media (max-width: 720px)  { .header { flex-direction: column; align-items: flex-start; } }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <header class="header">
-      <div class="header-copy">
-        <h1>Россильбер</h1>
-        <div class="subtitle">Корпоративный портал</div>
-      </div>
-      <a
-        class="feedback-btn"
-        href="mailto:patrushev-ea@mail.ru?subject=%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F%20%D1%81%D0%B2%D1%8F%D0%B7%D1%8C%20%D0%BF%D0%BE%20%D0%BA%D0%BE%D1%80%D0%BF%D0%BE%D1%80%D0%B0%D1%82%D0%B8%D0%B2%D0%BD%D0%BE%D0%BC%D1%83%20%D0%BF%D0%BE%D1%80%D1%82%D0%B0%D0%BB%D1%83&body=%D0%98%D0%BC%D1%8F%3A%20%0A%D0%9F%D0%BE%D0%B4%D1%80%D0%B0%D0%B7%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%3A%20%0A%D0%A1%D0%BE%D0%BE%D0%B1%D1%89%D0%B5%D0%BD%D0%B8%D0%B5%3A%20"
-      >Обратная связь</a>
-    </header>
-
-    <main class="grid" id="departmentsGrid"></main>
-
-    <footer>разработал Патрушев Е.</footer>
-  </div>
-
-  <script>
-    const departments = [
-      { key: 'beloretsk', icon: '🏭', name: 'Производство Белорецк', note: 'Управление производством' },
-      { key: 'technopark', icon: '🏗️', name: 'Производство Технопарк', note: 'Инновационные линии' },
-      { key: 'rnd', icon: '🔬', name: 'RnD и Технология', note: 'Исследования и разработка' },
-      { key: 'sales', icon: '📈', name: 'Продажи', note: 'Коммерческий блок' },
-      { key: 'supply', icon: '📦', name: 'Снабжение', note: 'Закупки и логистика' },
-      { key: 'development', icon: '🚀', name: 'Развитие', note: 'Стратегическое планирование' },
-      { key: 'efficiency', icon: '⚙️', name: 'Операционная эффективность', note: 'Оптимизация процессов' },
-      { key: 'hr', icon: '👥', name: 'Персонал', note: 'Департамент персонала' },
-      { key: 'finance', icon: '💰', name: 'Финансы', note: 'Отчетность и контроль' },
-      { key: 'security', icon: '🛡️', name: 'Безопасность', note: 'Защита активов' },
-      { key: 'hse', icon: '🦺', name: 'СОТПБ и ЭБ', note: 'Охрана труда и экология' },
-      { key: 'legal', icon: '⚖️', name: 'Право', note: 'Юридический департамент' },
-      { key: 'it', icon: '💻', name: 'ИТ', note: 'Инфраструктура и сервисы' },
-      { key: 'admin', icon: '📁', name: 'Администрирование', note: 'Обеспечение офиса' },
-      { key: 'tech_policy', icon: '🛠️', name: 'Техническая политика', note: 'Модернизация' },
-      { key: 'ai', icon: '🧠', name: 'Искусственный интеллект', note: 'Автоматизация и ИИ' }
-    ];
-
-    const grid = document.getElementById('departmentsGrid');
-    departments.forEach((department) => {
-      const card = document.createElement('a');
-      card.className = 'card';
-      card.href = `departments.html?dept=${department.key}`;
-      card.innerHTML = `
-        <div class="icon">${department.icon}</div>
-        <div>
-          <h2>${department.name}</h2>
-          <p>${department.note}</p>
-        </div>
-      `;
-      grid.appendChild(card);
-    });
-  </script>
-</body>
-</html>
+ <!DOCTYPE html>
+ <html lang="ru">
+ <head>
+-    <meta charset="UTF-8">
+-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+-    <title>Россильбер | Главный корпоративный портал</title>
+-    <script src="https://cdn.tailwindcss.com"></script>
++  <meta charset="UTF-8">
++  <meta name="viewport" content="width=device-width, initial-scale=1.0">
++  <title>Россильбер | Корпоративный портал проектов</title>
++  <style>
++    :root {
++      --bg: #070b16;
++      --bg-2: #0c1324;
++      --card: #111827;
++      --card-2: #1a2234;
++      --line: #27324a;
++      --text: #e9edf5;
++      --muted: #a7afbf;
++    }
++
++    * { box-sizing: border-box; }
++
++    body {
++      margin: 0;
++      font-family: Inter, "Segoe UI", sans-serif;
++      color: var(--text);
++      background:
++        radial-gradient(800px 420px at 50% 0%, #18243c 0%, transparent 70%),
++        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%);
++      min-height: 100vh;
++    }
++
++    .container {
++      max-width: 1240px;
++      margin: 0 auto;
++      padding: 40px 20px 36px;
++    }
++
++    .header {
++      border-bottom: 1px solid var(--line);
++      padding-bottom: 18px;
++      margin-bottom: 26px;
++      display: flex;
++      justify-content: space-between;
++      align-items: flex-start;
++      gap: 16px;
++    }
++
++    .header-copy { flex: 1; }
++
++    .feedback-btn {
++      text-decoration: none;
++      border: 1px solid #3a4a66;
++      color: var(--text);
++      background: rgba(17, 24, 39, .75);
++      border-radius: 10px;
++      padding: 10px 14px;
++      font-size: 13px;
++      white-space: nowrap;
++      transition: .2s ease;
++    }
++
++    .feedback-btn:hover {
++      border-color: #4f6790;
++      transform: translateY(-1px);
++    }
++
++    h1 {
++      margin: 0;
++      text-transform: uppercase;
++      letter-spacing: .18em;
++      font-size: clamp(38px, 5vw, 56px);
++      line-height: 1;
++      font-weight: 700;
++    }
++
++    .subtitle {
++      margin-top: 10px;
++      color: var(--muted);
++      font-size: clamp(14px, 2vw, 34px);
++    }
++
++    .grid {
++      display: grid;
++      grid-template-columns: repeat(5, minmax(0, 1fr));
++      gap: 14px;
++    }
++
++    .card {
++      min-height: 116px;
++      text-decoration: none;
++      color: inherit;
++      border-radius: 14px;
++      border: 1px solid var(--line);
++      background: linear-gradient(115deg, var(--card) 0%, var(--card-2) 100%);
++      padding: 16px;
++      display: flex;
++      gap: 12px;
++      transition: .2s ease;
++    }
++
++    .card:hover {
++      transform: translateY(-2px);
++      border-color: #344360;
++      box-shadow: 0 10px 26px rgba(5, 8, 14, .42);
++    }
++
++    .icon {
++      font-size: 30px;
++      line-height: 1;
++      margin-top: 1px;
++    }
++
++    .card h2 {
++      margin: 0;
++      font-size: 15px;
++      line-height: 1.2;
++      font-weight: 650;
++    }
++
++    .card p {
++      margin: 8px 0 0;
++      font-size: 12px;
++      line-height: 1.35;
++      color: var(--muted);
++    }
++
++    footer {
++      margin-top: 20px;
++      border-top: 1px solid var(--line);
++      padding-top: 14px;
++      color: #7d879b;
++      text-align: center;
++      font-size: 13px;
++    }
++
++    @media (max-width: 1160px) { .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
++    @media (max-width: 940px)  { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
++    @media (max-width: 700px)  { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
++    @media (max-width: 520px)  { .grid { grid-template-columns: 1fr; } }
++    @media (max-width: 720px)  { .header { flex-direction: column; align-items: flex-start; } }
++  </style>
+ </head>
+-<body class="bg-gray-100 text-gray-800 font-sans h-screen flex flex-col overflow-hidden">
+-
+-    <div class="max-w-7xl mx-auto w-full px-4 py-6 flex flex-col h-full">
+-        
+-        <div class="text-center mb-6 border-b border-gray-200 pb-4 shrink-0">
+-            <h1 class="text-4xl font-extrabold text-indigo-900 tracking-widest uppercase mb-1">Россильбер</h1>
+-            <p class="text-lg text-gray-500 font-light italic">Главный корпоративный портал</p>
+-        </div>
+-
+-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 overflow-y-auto pr-2 pb-2">
+-            
+-            <a href="beloretsk.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🏭</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Производство Белорецк</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Управление производством</p>
+-                </div>
+-            </a>
+-
+-            <a href="technopark.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🏗️</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Производство Технопарк</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Инновационные линии</p>
+-                </div>
+-            </a>
+-
+-            <a href="rnd.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🔬</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">RnD и Технология</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Исследования и разработка</p>
+-                </div>
+-            </a>
+-
+-            <a href="sales.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">📈</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Продажи</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Коммерческий блок</p>
+-                </div>
+-            </a>
+-
+-            <a href="supply.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">📦</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Снабжение</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Закупки и логистика</p>
+-                </div>
+-            </a>
+-
+-            <a href="development.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🚀</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Развитие</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Стратегическое планирование</p>
+-                </div>
+-            </a>
+-
+-            <a href="efficiency.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">⚙️</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Операционная эффективность</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Оптимизация процессов</p>
+-                </div>
+-            </a>
+-
+-            <a href="hr.html" class="group bg-indigo-50 p-3 rounded-xl shadow-sm border border-indigo-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-    <div class="text-3xl shrink-0">👥</div>
+-    <div>
+-        <h2 class="text-sm font-bold text-indigo-900 leading-tight">Персонал</h2>
+-        <p class="text-indigo-600 text-[11px] mt-0.5 font-medium">Перейти в департамент ➔</p>
+-    </div>
+-</a>
+-
+-            <a href="finance.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">💰</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Финансы</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Отчетность и контроль</p>
+-                </div>
+-            </a>
+-
+-            <a href="security.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🛡️</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Безопасность</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Защита активов</p>
+-                </div>
+-            </a>
+-
+-            <a href="hse.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🦺</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">СОТПБ и ЭБ</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Охрана труда и экология</p>
+-                </div>
+-            </a>
+-
+-            <a href="legal.html" class="group bg-indigo-50 p-3 rounded-xl shadow-sm border border-indigo-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">⚖️</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Право</h2>
+-                    <p class="text-indigo-600 text-[11px] mt-0.5 font-medium">Перейти в департамент ➔</p>
+-                </div>
+-            </a>
+-
+-            <a href="it.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">💻</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">ИТ</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Инфраструктура</p>
+-                </div>
+-            </a>
+-
+-            <a href="admin.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">📁</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Администрирование</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Обеспечение офиса</p>
+-                </div>
+-            </a>
+-
+-            <a href="tech_policy.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🛠️</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Техническая политика</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Модернизация</p>
+-                </div>
+-            </a>
+-
+-            <a href="ai.html" class="group bg-indigo-50 p-3 rounded-xl shadow-sm border border-indigo-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-    <div class="text-3xl shrink-0">🧠</div>
+-    <div>
+-        <h2 class="text-sm font-bold text-indigo-900 leading-tight">Искусственный интеллект</h2>
+-        <p class="text-indigo-600 text-[11px] mt-0.5 font-medium">Перейти в департамент ➔</p>
+-    </div>
+-</a>
+-
+-            <a href="marketing.html" class="group bg-white p-3 rounded-xl shadow-sm border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition duration-200 flex items-center gap-3">
+-                <div class="text-3xl shrink-0">🎯</div>
+-                <div>
+-                    <h2 class="text-sm font-bold text-indigo-900 leading-tight">Маркетинг</h2>
+-                    <p class="text-gray-500 text-[11px] mt-0.5">Продвижение и аналитика</p>
+-                </div>
+-            </a>
+-
++<body>
++  <div class="container">
++    <header class="header">
++      <div class="header-copy">
++        <h1>РОССИЛЬБЕР</h1>
++        <div class="subtitle">Корпоративный портал</div>
++      </div>
++      <a
++        class="feedback-btn"
++        href="mailto:patrushev-ea@mail.ru?subject=%D0%9E%D0%B1%D1%80%D0%B0%D1%82%D0%BD%D0%B0%D1%8F%20%D1%81%D0%B2%D1%8F%D0%B7%D1%8C%20%D0%BF%D0%BE%20%D0%BA%D0%BE%D1%80%D0%BF%D0%BE%D1%80%D0%B0%D1%82%D0%B8%D0%B2%D0%BD%D0%BE%D0%BC%D1%83%20%D0%BF%D0%BE%D1%80%D1%82%D0%B0%D0%BB%D1%83&body=%D0%98%D0%BC%D1%8F%3A%20%0A%D0%9F%D0%BE%D0%B4%D1%80%D0%B0%D0%B7%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%3A%20%0A%D0%A1%D0%BE%D0%BE%D0%B1%D1%89%D0%B5%D0%BD%D0%B8%D0%B5%3A%20"
++      >Обратная связь</a>
++    </header>
++
++    <main class="grid" id="departmentsGrid"></main>
++
++    <footer>разработал Патрушев Е.</footer>
++  </div>
++
++  <script>
++    const departments = [
++      { key: 'beloretsk', icon: '🏭', name: 'Производство Белорецк', note: 'Управление производством' },
++      { key: 'technopark', icon: '🏗️', name: 'Производство Технопарк', note: 'Инновационные линии' },
++      { key: 'rnd', icon: '🔬', name: 'RnD и Технология', note: 'Исследования и разработка' },
++      { key: 'sales', icon: '📈', name: 'Продажи', note: 'Коммерческий блок' },
++      { key: 'supply', icon: '📦', name: 'Снабжение', note: 'Закупки и логистика' },
++      { key: 'development', icon: '🚀', name: 'Развитие', note: 'Стратегическое планирование' },
++      { key: 'efficiency', icon: '⚙️', name: 'Операционная эффективность', note: 'Оптимизация процессов' },
++      { key: 'hr', icon: '👥', name: 'Персонал', note: 'Департамент персонала' },
++      { key: 'finance', icon: '💰', name: 'Финансы', note: 'Отчетность и контроль' },
++      { key: 'security', icon: '🛡️', name: 'Безопасность', note: 'Защита активов' },
++      { key: 'hse', icon: '🦺', name: 'СОТПБ и ЭБ', note: 'Охрана труда и экология' },
++      { key: 'legal', icon: '⚖️', name: 'Право', note: 'Юридический департамент' },
++      { key: 'it', icon: '💻', name: 'ИТ', note: 'Инфраструктура и сервисы' },
++      { key: 'admin', icon: '📁', name: 'Администрирование', note: 'Обеспечение офиса' },
++      { key: 'tech_policy', icon: '🛠️', name: 'Техническая политика', note: 'Модернизация' },
++      { key: 'ai', icon: '🧠', name: 'Искусственный интеллект', note: 'Автоматизация и ИИ' }
++    ];
++
++    const grid = document.getElementById('departmentsGrid');
++    departments.forEach((department) => {
++      const card = document.createElement('a');
++      card.className = 'card';
++      card.href = `departments.html?dept=${department.key}`;
++      card.innerHTML = `
++        <div class="icon">${department.icon}</div>
++        <div>
++          <h2>${department.name}</h2>
++          <p>${department.note}</p>
+         </div>
+-
+-        <div class="mt-auto text-center border-t border-gray-200 pt-4 shrink-0">
+-            <p class="text-gray-400 text-sm italic">разработал Патрушев Е.</p>
+-        </div>
+-    </div>
+-
++      `;
++      grid.appendChild(card);
++    });
++  </script>
+ </body>
+ </html>
