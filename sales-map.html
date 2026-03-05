@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Визуализация клиентов на карте</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <style>
+    :root {
+      --bg: #070b16;
+      --bg-2: #0c1324;
+      --card: #121a2b;
+      --card-2: #1a2234;
+      --line: #27324a;
+      --text: #e9edf5;
+      --muted: #a7afbf;
+      --accent: #e4c981;
+      --danger: #f87171;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 440px at 50% 0%, #18243c 0%, transparent 72%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .topline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 12px;
+      margin-bottom: 18px;
+    }
+
+    .topline a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .title {
+      margin: 0 0 4px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: clamp(22px, 2vw, 34px);
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .layout {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: 4fr 1fr;
+      gap: 14px;
+      min-height: calc(100vh - 180px);
+    }
+
+    .map-card, .panel {
+      background: linear-gradient(115deg, var(--card) 0%, var(--card-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 620px;
+    }
+
+    .panel {
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #0d1423;
+      color: var(--text);
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #101521;
+    }
+
+    .btn-primary:hover { filter: brightness(1.05); }
+
+    .list {
+      max-height: 310px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .client-row {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      background: rgba(13, 20, 35, .45);
+    }
+
+    .client-row b { display: block; font-size: 13px; }
+    .client-row span { color: var(--muted); font-size: 12px; }
+
+    .delete {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid #7f2d2d;
+      border-radius: 8px;
+      padding: 6px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .marker-pin {
+      width: 22px;
+      height: 22px;
+      border-radius: 50% 50% 50% 0;
+      background: linear-gradient(140deg, #f8d37b 0%, #d69f33 100%);
+      transform: rotate(-45deg);
+      border: 2px solid #fff2ca;
+      box-shadow: 0 0 0 8px rgba(228, 201, 129, .2);
+    }
+
+    @media (max-width: 1050px) {
+      .layout { grid-template-columns: 1fr; }
+      #map { min-height: 480px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topline">
+      <a href="departments.html?dept=sales">← Назад в департамент «Продажи»</a>
+      <span style="color:#a7afbf;font-size:12px;">Проект: Визуализация клиентов на карте</span>
+    </div>
+
+    <h1 class="title">Визуализация клиентов на карте</h1>
+    <p class="subtitle">Карта РФ и стран СНГ + быстрый ввод/удаление заводов клиентов.</p>
+
+    <div class="layout">
+      <section class="map-card">
+        <div id="map"></div>
+      </section>
+
+      <aside class="panel">
+        <div>
+          <h2>Добавить клиента</h2>
+          <p class="hint">Укажите завод и город — отметка появится на карте мгновенно.</p>
+        </div>
+
+        <div class="field">
+          <label for="plantName">Наименование завода</label>
+          <input id="plantName" placeholder="Например, ООО Металл Сервис" maxlength="90">
+        </div>
+
+        <div class="field">
+          <label for="citySearch">Город / страна (поиск)</label>
+          <input id="citySearch" list="cityOptionsList" placeholder="Начните вводить город...">
+          <datalist id="cityOptionsList"></datalist>
+        </div>
+
+        <button class="btn btn-primary" id="addClientBtn">Внести на карту</button>
+
+        <div>
+          <h2>Клиенты на карте</h2>
+          <div id="clientsList" class="list"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script>
+    const CITY_OPTIONS = [
+      // Россия
+      { label: 'Москва, Россия', lat: 55.7558, lng: 37.6176 },
+      { label: 'Санкт-Петербург, Россия', lat: 59.9311, lng: 30.3609 },
+      { label: 'Новосибирск, Россия', lat: 55.0084, lng: 82.9357 },
+      { label: 'Екатеринбург, Россия', lat: 56.8389, lng: 60.6057 },
+      { label: 'Казань, Россия', lat: 55.7963, lng: 49.1088 },
+      { label: 'Нижний Новгород, Россия', lat: 56.2965, lng: 43.9361 },
+      { label: 'Челябинск, Россия', lat: 55.1644, lng: 61.4368 },
+      { label: 'Самара, Россия', lat: 53.1959, lng: 50.1002 },
+      { label: 'Омск, Россия', lat: 54.9885, lng: 73.3242 },
+      { label: 'Ростов-на-Дону, Россия', lat: 47.2357, lng: 39.7015 },
+      { label: 'Уфа, Россия', lat: 54.7388, lng: 55.9721 },
+      { label: 'Красноярск, Россия', lat: 56.0153, lng: 92.8932 },
+      { label: 'Пермь, Россия', lat: 58.0105, lng: 56.2502 },
+      { label: 'Воронеж, Россия', lat: 51.6608, lng: 39.2003 },
+      { label: 'Волгоград, Россия', lat: 48.708, lng: 44.5133 },
+      { label: 'Краснодар, Россия', lat: 45.0355, lng: 38.9753 },
+      { label: 'Саратов, Россия', lat: 51.5331, lng: 46.0342 },
+      { label: 'Тюмень, Россия', lat: 57.153, lng: 65.5343 },
+      { label: 'Тольятти, Россия', lat: 53.5078, lng: 49.4204 },
+      { label: 'Ижевск, Россия', lat: 56.8528, lng: 53.2045 },
+      { label: 'Барнаул, Россия', lat: 53.3474, lng: 83.7784 },
+      { label: 'Ульяновск, Россия', lat: 54.3142, lng: 48.4031 },
+      { label: 'Иркутск, Россия', lat: 52.2869, lng: 104.305 },
+      { label: 'Хабаровск, Россия', lat: 48.4808, lng: 135.0928 },
+      { label: 'Ярославль, Россия', lat: 57.6261, lng: 39.8845 },
+      { label: 'Владивосток, Россия', lat: 43.1155, lng: 131.8855 },
+      { label: 'Махачкала, Россия', lat: 42.9849, lng: 47.5047 },
+      { label: 'Томск, Россия', lat: 56.4846, lng: 84.9486 },
+      { label: 'Оренбург, Россия', lat: 51.7682, lng: 55.0969 },
+      { label: 'Кемерово, Россия', lat: 55.3904, lng: 86.0468 },
+      { label: 'Новокузнецк, Россия', lat: 53.7943, lng: 87.2144 },
+      { label: 'Рязань, Россия', lat: 54.6255, lng: 39.7359 },
+      { label: 'Астрахань, Россия', lat: 46.3497, lng: 48.0408 },
+      { label: 'Пенза, Россия', lat: 53.1959, lng: 45.0183 },
+      { label: 'Липецк, Россия', lat: 52.6102, lng: 39.5947 },
+      { label: 'Тула, Россия', lat: 54.1931, lng: 37.6176 },
+      { label: 'Киров, Россия', lat: 58.6036, lng: 49.6669 },
+      { label: 'Чебоксары, Россия', lat: 56.1439, lng: 47.2489 },
+      { label: 'Калининград, Россия', lat: 54.7104, lng: 20.4522 },
+      { label: 'Брянск, Россия', lat: 53.2436, lng: 34.3634 },
+      { label: 'Курск, Россия', lat: 51.7304, lng: 36.1926 },
+      { label: 'Иваново, Россия', lat: 57.0004, lng: 40.9739 },
+      { label: 'Магнитогорск, Россия', lat: 53.4072, lng: 58.9791 },
+      { label: 'Тверь, Россия', lat: 56.8587, lng: 35.9176 },
+      { label: 'Ставрополь, Россия', lat: 45.0445, lng: 41.969 },
+      { label: 'Белгород, Россия', lat: 50.5954, lng: 36.587 },
+      { label: 'Архангельск, Россия', lat: 64.5393, lng: 40.517 },
+      { label: 'Вологда, Россия', lat: 59.2205, lng: 39.8915 },
+      { label: 'Сургут, Россия', lat: 61.254, lng: 73.3962 },
+      { label: 'Мурманск, Россия', lat: 68.9707, lng: 33.0749 },
+      { label: 'Сочи, Россия', lat: 43.5855, lng: 39.7231 },
+
+      // Страны СНГ
+      { label: 'Минск, Беларусь', lat: 53.9006, lng: 27.559 },
+      { label: 'Гомель, Беларусь', lat: 52.4345, lng: 30.9754 },
+      { label: 'Витебск, Беларусь', lat: 55.1904, lng: 30.2049 },
+      { label: 'Брест, Беларусь', lat: 52.0976, lng: 23.7341 },
+      { label: 'Гродно, Беларусь', lat: 53.6694, lng: 23.8131 },
+      { label: 'Могилёв, Беларусь', lat: 53.898, lng: 30.3325 },
+
+      { label: 'Астана, Казахстан', lat: 51.1694, lng: 71.4491 },
+      { label: 'Алматы, Казахстан', lat: 43.2389, lng: 76.8897 },
+      { label: 'Шымкент, Казахстан', lat: 42.3417, lng: 69.5901 },
+      { label: 'Караганда, Казахстан', lat: 49.8047, lng: 73.1094 },
+      { label: 'Актобе, Казахстан', lat: 50.2839, lng: 57.1669 },
+      { label: 'Павлодар, Казахстан', lat: 52.2871, lng: 76.9674 },
+      { label: 'Усть-Каменогорск, Казахстан', lat: 49.9483, lng: 82.6289 },
+      { label: 'Атырау, Казахстан', lat: 47.0945, lng: 51.9237 },
+
+      { label: 'Бишкек, Кыргызстан', lat: 42.8746, lng: 74.5698 },
+      { label: 'Ош, Кыргызстан', lat: 40.513, lng: 72.8161 },
+      { label: 'Джалал-Абад, Кыргызстан', lat: 40.9333, lng: 73.0 },
+
+      { label: 'Ташкент, Узбекистан', lat: 41.2995, lng: 69.2401 },
+      { label: 'Самарканд, Узбекистан', lat: 39.6542, lng: 66.9597 },
+      { label: 'Бухара, Узбекистан', lat: 39.767, lng: 64.4234 },
+      { label: 'Наманган, Узбекистан', lat: 41.0058, lng: 71.6436 },
+      { label: 'Андижан, Узбекистан', lat: 40.7831, lng: 72.34 },
+
+      { label: 'Баку, Азербайджан', lat: 40.4093, lng: 49.8671 },
+      { label: 'Гянджа, Азербайджан', lat: 40.6828, lng: 46.3606 },
+      { label: 'Сумгаит, Азербайджан', lat: 40.5855, lng: 49.6317 },
+
+      { label: 'Ереван, Армения', lat: 40.1792, lng: 44.4991 },
+      { label: 'Гюмри, Армения', lat: 40.7894, lng: 43.8472 },
+      { label: 'Ванадзор, Армения', lat: 40.8075, lng: 44.4939 },
+
+      { label: 'Душанбе, Таджикистан', lat: 38.5598, lng: 68.787 },
+      { label: 'Худжанд, Таджикистан', lat: 40.2826, lng: 69.6222 },
+      { label: 'Бохтар, Таджикистан', lat: 37.8364, lng: 68.7775 },
+
+      { label: 'Ашхабад, Туркменистан', lat: 37.9601, lng: 58.3261 },
+      { label: 'Туркменабад, Туркменистан', lat: 39.0733, lng: 63.5786 },
+      { label: 'Дашогуз, Туркменистан', lat: 41.8363, lng: 59.9659 }
+    ];
+
+    const STORAGE_KEY = 'sales_map_clients';
+    const citySearch = document.getElementById('citySearch');
+    const cityOptionsList = document.getElementById('cityOptionsList');
+    const clientsList = document.getElementById('clientsList');
+
+    CITY_OPTIONS.forEach((city) => {
+      const option = document.createElement('option');
+      option.value = city.label;
+      cityOptionsList.appendChild(option);
+    });
+
+    const map = L.map('map', { zoomControl: true }).setView([52.2, 66], 3);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 11,
+      minZoom: 3,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const markers = new Map();
+    const cityByLabel = new Map(CITY_OPTIONS.map((city) => [city.label.toLowerCase(), city]));
+
+    const markerIcon = L.divIcon({
+      className: '',
+      html: '<div class="marker-pin"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 24],
+      popupAnchor: [0, -22]
+    });
+
+    function loadClients() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (error) {
+        console.warn('Некорректные данные в localStorage, используется пустой список.', error);
+        return [];
+      }
+    }
+
+    function saveClients(clients) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(clients));
+    }
+
+    async function geocodeCity(query) {
+      const endpoint = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ru,by,kz,kg,uz,az,am,tj,tm&q=${encodeURIComponent(query)}`;
+      const response = await fetch(endpoint, { headers: { 'Accept-Language': 'ru' } });
+      if (!response.ok) {
+        throw new Error('Не удалось выполнить геопоиск города.');
+      }
+      const result = await response.json();
+      if (!result.length) {
+        throw new Error('Город не найден. Проверьте название и попробуйте снова.');
+      }
+      return {
+        label: query,
+        lat: Number(result[0].lat),
+        lng: Number(result[0].lon)
+      };
+    }
+
+    async function resolveCity(query) {
+      const normalized = query.trim().toLowerCase();
+      if (!normalized) {
+        throw new Error('Выберите город или начните вводить его название.');
+      }
+      if (cityByLabel.has(normalized)) {
+        return cityByLabel.get(normalized);
+      }
+      return geocodeCity(query.trim());
+    }
+
+    function drawMarkers(clients) {
+      markers.forEach((marker) => marker.remove());
+      markers.clear();
+
+      clients.forEach((client) => {
+        const marker = L.marker([client.lat, client.lng], { icon: markerIcon }).addTo(map);
+        marker.bindPopup(`<b>${client.name}</b><br>${client.city}`);
+        marker.bindTooltip(client.name, { direction: 'top', offset: [0, -20], opacity: 0.95 });
+        marker.on('mouseover', () => marker.openTooltip());
+        marker.on('mouseout', () => marker.closeTooltip());
+        markers.set(client.id, marker);
+      });
+    }
+
+    function renderList(clients) {
+      clientsList.innerHTML = '';
+      if (!clients.length) {
+        clientsList.innerHTML = '<div class="empty">Пока нет клиентов. Добавьте первый завод справа.</div>';
+        return;
+      }
+
+      clients.forEach((client) => {
+        const row = document.createElement('div');
+        row.className = 'client-row';
+        row.innerHTML = `
+          <div>
+            <b>${client.name}</b>
+            <span>${client.city}</span>
+          </div>
+          <button class="delete" data-id="${client.id}" data-name="${client.name}">Убрать</button>
+        `;
+        clientsList.appendChild(row);
+      });
+    }
+
+    function refresh() {
+      const clients = loadClients();
+      drawMarkers(clients);
+      renderList(clients);
+    }
+
+    document.getElementById('addClientBtn').addEventListener('click', async () => {
+      const plantName = document.getElementById('plantName').value.trim();
+      const cityQuery = citySearch.value.trim();
+
+      if (!plantName) {
+        alert('Введите наименование завода');
+        return;
+      }
+
+      let city;
+      try {
+        city = await resolveCity(cityQuery);
+      } catch (error) {
+        alert(error.message);
+        return;
+      }
+
+      const clients = loadClients();
+      const newClient = {
+        id: crypto.randomUUID(),
+        name: plantName,
+        city: city.label,
+        lat: city.lat,
+        lng: city.lng
+      };
+
+      clients.push(newClient);
+      saveClients(clients);
+      document.getElementById('plantName').value = '';
+      citySearch.value = '';
+      refresh();
+
+      if (markers.has(newClient.id)) {
+        map.flyTo([newClient.lat, newClient.lng], Math.max(map.getZoom(), 5), { duration: 0.8 });
+        markers.get(newClient.id).openPopup();
+      }
+    });
+
+    clientsList.addEventListener('click', (event) => {
+      const button = event.target.closest('.delete');
+      if (!button) return;
+
+      const id = button.dataset.id;
+      const name = button.dataset.name || 'контрагента';
+      const shouldDelete = confirm(`Точно хотите удалить ${name} с карты?`);
+      if (!shouldDelete) {
+        return;
+      }
+
+      const clients = loadClients().filter((client) => client.id !== id);
+      saveClients(clients);
+      refresh();
+    });
+
+    refresh();
+  </script>
+</body>
+</html>
