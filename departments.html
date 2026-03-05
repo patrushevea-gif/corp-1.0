@@ -6,42 +6,42 @@
   <title>Россильбер | Направление</title>
   <style>
     :root {
-      --bg: #070b16;
-      --bg-2: #0c1324;
-      --card: #111827;
-      --card-2: #1a2234;
-      --line: #27324a;
-      --text: #e9edf5;
-      --muted: #a7afbf;
-      --accent: #e4c981;
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #1f2430;
+      --text: #f3f6fb;
+      --muted: #a8b1c1;
+      --line: #2d3442;
+      --accent: #d7b97a;
+      --btn: #d7b97a;
+      --btn-text: #171a21;
     }
+
     * { box-sizing: border-box; }
 
     body {
       margin: 0;
-      font-family: Inter, "Segoe UI", sans-serif;
+      font-family: "Inter", "Segoe UI", sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(900px 440px at 50% 0%, #18243c 0%, transparent 72%),
-        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%);
+      background: radial-gradient(circle at top, #1d2330 0%, var(--bg) 45%);
       min-height: 100vh;
     }
 
     .wrap {
-      max-width: 1240px;
+      max-width: 1160px;
       margin: 0 auto;
-      padding: 30px 20px 36px;
+      padding: 30px 20px;
     }
 
     .top-line {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
       border-bottom: 1px solid var(--line);
       padding-bottom: 16px;
-      margin-bottom: 24px;
-      gap: 12px;
-      flex-wrap: wrap;
+      margin-bottom: 26px;
     }
 
     .back {
@@ -52,70 +52,63 @@
 
     .back:hover { color: var(--text); }
 
-    .badge {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 8px 14px;
-      color: var(--muted);
-      font-size: 12px;
-      background: rgba(17, 24, 39, .65);
-      backdrop-filter: blur(1px);
-    }
-
     h1 {
       margin: 0;
       text-transform: uppercase;
       letter-spacing: .18em;
-      font-size: clamp(40px, 5vw, 56px);
-      line-height: 1;
+      font-size: clamp(24px, 4vw, 42px);
       font-weight: 700;
     }
 
     .subtitle {
-      margin: 10px 0 0;
+      margin-top: 8px;
       color: var(--muted);
-      font-size: clamp(14px, 2vw, 31px);
     }
 
     .toolbar {
-      margin-top: 18px;
-      margin-bottom: 16px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
+      margin-bottom: 16px;
+      align-items: center;
     }
 
-    .toolbar .badge { max-width: 560px; }
+    .badge {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, .02);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
 
-    .add-btn {
+    button {
       border: 0;
-      background: var(--accent);
-      color: #121722;
-      border-radius: 14px;
-      padding: 12px 22px;
-      font-size: 16px;
+      background: var(--btn);
+      color: var(--btn-text);
+      border-radius: 10px;
+      padding: 10px 14px;
       font-weight: 700;
       cursor: pointer;
     }
 
-    .add-btn:hover { filter: brightness(1.05); }
+    button:hover { filter: brightness(1.04); }
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
       gap: 14px;
     }
 
     .card {
-      min-height: 178px;
-      border-radius: 14px;
+      background: linear-gradient(165deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid var(--line);
-      background: linear-gradient(115deg, var(--card) 0%, var(--card-2) 100%);
+      border-radius: 14px;
+      padding: 14px;
       text-decoration: none;
       color: inherit;
-      padding: 14px;
+      min-height: 176px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -124,74 +117,101 @@
 
     .card:hover {
       transform: translateY(-2px);
-      border-color: #344360;
-      box-shadow: 0 10px 26px rgba(5, 8, 14, .42);
+      border-color: #3b465a;
     }
 
-    .icon { font-size: 30px; line-height: 1; }
-    .card h3 { margin: 0; font-size: 15px; line-height: 1.25; }
-    .card p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
-    .hint { margin-top: auto; color: var(--accent); font-size: 13px; }
+    .icon { font-size: 27px; }
 
-    .empty {
-      border: 1px dashed var(--line);
-      border-radius: 14px;
-      padding: 18px;
+    .card h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .card p {
+      margin: 0;
       color: var(--muted);
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .hint {
+      margin-top: auto;
+      font-size: 12px;
+      color: var(--accent);
     }
 
     dialog {
       width: min(560px, 94vw);
       border: 1px solid var(--line);
       border-radius: 14px;
-      background: #121a2a;
+      background: #141922;
       color: var(--text);
       padding: 0;
     }
 
-    dialog::backdrop { background: rgba(0, 0, 0, .58); }
+    dialog::backdrop { background: rgba(0, 0, 0, .55); }
 
     .modal-body { padding: 18px; }
-    .modal-head { display: flex; justify-content: space-between; align-items: center; }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     .modal-head h3 { margin: 0; }
 
     .close {
-      border: 0;
       background: transparent;
       color: var(--muted);
-      font-size: 14px;
-      cursor: pointer;
+      padding: 0;
+      font-size: 22px;
     }
 
     .field { margin-top: 12px; }
-    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); }
 
-    input, textarea {
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    input,
+    textarea {
       width: 100%;
+      background: #0f131b;
       border: 1px solid var(--line);
       border-radius: 8px;
-      padding: 10px 11px;
-      background: #0e1523;
       color: var(--text);
-      font: inherit;
+      padding: 10px 11px;
       font-size: 14px;
     }
 
-    textarea { min-height: 86px; resize: vertical; }
-    .actions { margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; }
-    .ghost {
-      border: 0;
-      background: #2a3448;
-      color: var(--text);
-      border-radius: 10px;
-      padding: 10px 13px;
-      cursor: pointer;
+    textarea {
+      min-height: 86px;
+      resize: vertical;
     }
 
-    @media (max-width: 1160px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (max-width: 900px)  { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 620px)  { .grid { grid-template-columns: 1fr; } }
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .ghost {
+      background: #2a3240;
+      color: var(--text);
+    }
+
+    .empty {
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      padding: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -202,13 +222,13 @@
     </div>
 
     <header>
-      <h1>РОССИЛЬБЕР</h1>
+      <h1>Россильбер</h1>
       <p id="subtitle" class="subtitle"></p>
     </header>
 
     <div class="toolbar">
       <div class="badge">Базовые и пользовательские проекты хранятся отдельно по каждому направлению</div>
-      <button id="addProjectBtn" class="add-btn" type="button">+ Добавить проект</button>
+      <button id="addProjectBtn" type="button">+ Добавить проект</button>
     </div>
 
     <main id="projectsGrid" class="grid"></main>
@@ -244,7 +264,7 @@
 
       <div class="actions">
         <button type="button" class="ghost" id="cancelBtn">Отмена</button>
-        <button type="submit" class="add-btn">Сохранить</button>
+        <button type="submit">Сохранить</button>
       </div>
     </form>
   </dialog>
