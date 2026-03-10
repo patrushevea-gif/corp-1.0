@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Разница дат (РФ)</title>
+  <style>
+    :root {
+      --bg: #070b16;
+      --bg-2: #0c1324;
+      --card: #111827;
+      --line: #27324a;
+      --text: #e9edf5;
+      --muted: #a7afbf;
+      --accent: #e4c981;
+      --ok: #62dba8;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 440px at 50% 0%, #18243c 0%, transparent 72%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 55%);
+    }
+    .wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 30px 20px 44px;
+    }
+    .back {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+      display: inline-block;
+      margin-bottom: 18px;
+    }
+    .back:hover { color: var(--text); }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(120deg, #111827 0%, #1a2234 100%);
+      padding: 22px;
+    }
+    h1 {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: clamp(25px, 4vw, 34px);
+    }
+    .lead {
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #0d1422;
+      color: var(--text);
+      padding: 11px;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+    .actions { margin-top: 14px; }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #121722;
+    }
+    .result {
+      margin-top: 16px;
+      border-radius: 12px;
+      border: 1px solid #335179;
+      background: #0b182c;
+      padding: 14px;
+      display: grid;
+      gap: 8px;
+    }
+    .result strong { color: var(--ok); }
+    .meta {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    @media (max-width: 720px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="departments.html?dept=legal">← К проектам направления «Право»</a>
+
+    <section class="card">
+      <h1>Разница дат (РФ)</h1>
+      <p class="lead">Введите две даты, а система покажет разницу в календарных днях и рабочих днях с учетом выходных и государственных праздников Российской Федерации.</p>
+
+      <div class="grid">
+        <div>
+          <label for="startDate">Дата начала</label>
+          <input id="startDate" type="date" required>
+        </div>
+        <div>
+          <label for="endDate">Дата окончания</label>
+          <input id="endDate" type="date" required>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="calcBtn" type="button">Рассчитать</button>
+      </div>
+
+      <div id="result" class="result" hidden>
+        <div>Период: <strong id="periodValue"></strong></div>
+        <div>Календарных дней (включительно): <strong id="calendarDays"></strong></div>
+        <div>Рабочих дней (РФ): <strong id="workDays"></strong></div>
+        <div>Нерабочих дней (выходные + праздники РФ): <strong id="offDays"></strong></div>
+      </div>
+
+      <p class="meta">Кратко: проект рассчитывает разницу между двумя датами, показывая календарные и рабочие дни с учетом выходных и федеральных праздничных дней РФ.</p>
+    </section>
+  </div>
+
+  <script>
+    const RF_HOLIDAYS_FIXED = [
+      '01-01', '01-02', '01-03', '01-04', '01-05', '01-06', '01-07', '01-08',
+      '02-23', '03-08', '05-01', '05-09', '06-12', '11-04'
+    ];
+
+    function toUtcDate(dateString) {
+      const [year, month, day] = dateString.split('-').map(Number);
+      return new Date(Date.UTC(year, month - 1, day));
+    }
+
+    function formatIso(date) {
+      const y = date.getUTCFullYear();
+      const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(date.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function isRfHoliday(date) {
+      const mmdd = `${String(date.getUTCMonth() + 1).padStart(2, '0')}-${String(date.getUTCDate()).padStart(2, '0')}`;
+      return RF_HOLIDAYS_FIXED.includes(mmdd);
+    }
+
+    function isWeekend(date) {
+      const day = date.getUTCDay();
+      return day === 0 || day === 6;
+    }
+
+    function calculateDiff(startDate, endDate) {
+      const start = startDate <= endDate ? new Date(startDate) : new Date(endDate);
+      const end = startDate <= endDate ? new Date(endDate) : new Date(startDate);
+
+      let total = 0;
+      let work = 0;
+      let off = 0;
+
+      for (let current = new Date(start); current <= end; current.setUTCDate(current.getUTCDate() + 1)) {
+        total += 1;
+        if (isWeekend(current) || isRfHoliday(current)) {
+          off += 1;
+        } else {
+          work += 1;
+        }
+      }
+
+      return {
+        period: `${formatIso(start)} — ${formatIso(end)}`,
+        calendarDays: total,
+        workDays: work,
+        offDays: off
+      };
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', () => {
+      const startValue = document.getElementById('startDate').value;
+      const endValue = document.getElementById('endDate').value;
+      if (!startValue || !endValue) return;
+
+      const summary = calculateDiff(toUtcDate(startValue), toUtcDate(endValue));
+
+      document.getElementById('periodValue').textContent = summary.period;
+      document.getElementById('calendarDays').textContent = summary.calendarDays;
+      document.getElementById('workDays').textContent = summary.workDays;
+      document.getElementById('offDays').textContent = summary.offDays;
+      document.getElementById('result').hidden = false;
+    });
+  </script>
+</body>
+</html>
