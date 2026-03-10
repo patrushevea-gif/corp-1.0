@@ -128,60 +128,29 @@
     }
 
     .cross-tools {
-      margin-top: 18px;
-      border: 1px solid #22304a;
-      background: rgba(13, 21, 37, .55);
-      border-radius: 14px;
-      padding: 12px;
-    }
-
-    .cross-tools-title {
-      margin: 0 0 10px;
-      font-size: 12px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: #8f9bb2;
-      font-weight: 700;
-    }
-
-    .cross-tool-item {
-      text-decoration: none;
-      border: 1px solid #2c3a55;
-      color: #c7d3ea;
-      background: rgba(17, 24, 39, .6);
-      border-radius: 12px;
-      padding: 10px 12px;
+      margin-top: 14px;
       display: flex;
+      justify-content: flex-end;
+    }
+
+    .flow-chip {
+      text-decoration: none;
+      border: 1px dashed #3b4c69;
+      color: #b8c4da;
+      background: rgba(17, 24, 39, .45);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 12px;
+      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      max-width: 320px;
+      gap: 6px;
       transition: .2s ease;
     }
 
-    .cross-tool-item:hover {
-      border-color: #465d83;
-      transform: translateY(-1px);
-      background: rgba(17, 24, 39, .78);
-    }
-
-    .cross-tool-item .icon {
-      font-size: 18px;
-      margin-top: 0;
-      opacity: .85;
-    }
-
-    .cross-tool-item h2 {
-      margin: 0;
-      font-size: 14px;
-      line-height: 1.2;
-      font-weight: 600;
-    }
-
-    .cross-tool-item p {
-      margin: 5px 0 0;
-      font-size: 12px;
-      line-height: 1.3;
-      color: #95a1b8;
+    .flow-chip:hover {
+      border-color: #5b77a5;
+      color: #d8e5ff;
+      background: rgba(17, 24, 39, .75);
     }
 
     footer {
@@ -216,14 +185,7 @@
     <main class="grid" id="departmentsGrid"></main>
 
     <section class="cross-tools" aria-label="Сквозные инструменты">
-      <h2 class="cross-tools-title">Сквозные инструменты</h2>
-      <a class="cross-tool-item" href="flow.html?v=20260310" title="Сквозной инструмент Flow">
-        <div class="icon">🔗</div>
-        <div>
-          <h2>Flow</h2>
-          <p>Прототипирование и mindmap-проекты</p>
-        </div>
-      </a>
+      <a class="flow-chip" href="flow.html" title="Сквозной инструмент Flow">🔗 Flow</a>
     </section>
 
     <footer>разработал Патрушев Е.</footer>
