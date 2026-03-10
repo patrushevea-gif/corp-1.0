@@ -128,29 +128,55 @@
     }
 
     .cross-tools {
-      margin-top: 14px;
-      display: flex;
-      justify-content: flex-end;
+      margin-top: 18px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 12px 12px;
+      background: rgba(7, 13, 26, 0.55);
     }
 
-    .flow-chip {
-      text-decoration: none;
-      border: 1px dashed #3b4c69;
-      color: #b8c4da;
-      background: rgba(17, 24, 39, .45);
-      border-radius: 999px;
-      padding: 6px 11px;
+    .cross-tools-title {
+      margin: 0 0 10px;
+      color: #98a8c5;
+      text-transform: uppercase;
+      letter-spacing: .12em;
       font-size: 12px;
-      display: inline-flex;
+      font-weight: 700;
+    }
+
+    .flow-card {
+      text-decoration: none;
+      color: inherit;
+      border: 1px solid #31405c;
+      border-radius: 12px;
+      padding: 10px 12px;
+      display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+      max-width: 320px;
+      background: linear-gradient(115deg, rgba(17,24,39,.75) 0%, rgba(26,34,52,.55) 100%);
       transition: .2s ease;
     }
 
-    .flow-chip:hover {
-      border-color: #5b77a5;
-      color: #d8e5ff;
-      background: rgba(17, 24, 39, .75);
+    .flow-card:hover {
+      border-color: #4f6790;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(4, 9, 18, .45);
+    }
+
+    .flow-icon { font-size: 24px; line-height: 1; }
+
+    .flow-name {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 650;
+      line-height: 1.1;
+    }
+
+    .flow-note {
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 12px;
     }
 
     footer {
@@ -185,7 +211,14 @@
     <main class="grid" id="departmentsGrid"></main>
 
     <section class="cross-tools" aria-label="Сквозные инструменты">
-      <a class="flow-chip" href="flow.html" title="Сквозной инструмент Flow">🔗 Flow</a>
+      <h2 class="cross-tools-title">Сквозные инструменты</h2>
+      <a class="flow-card" href="flow.html" title="Flow — прототипирование и mindmap-проекты">
+        <span class="flow-icon">🔗</span>
+        <span>
+          <strong class="flow-name">Flow</strong>
+          <div class="flow-note">Прототипирование и mindmap-проекты</div>
+        </span>
+      </a>
     </section>
 
     <footer>разработал Патрушев Е.</footer>
