@@ -127,6 +127,32 @@
       color: var(--muted);
     }
 
+    .cross-tools {
+      margin-top: 14px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .flow-chip {
+      text-decoration: none;
+      border: 1px dashed #3b4c69;
+      color: #b8c4da;
+      background: rgba(17, 24, 39, .45);
+      border-radius: 999px;
+      padding: 6px 11px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: .2s ease;
+    }
+
+    .flow-chip:hover {
+      border-color: #5b77a5;
+      color: #d8e5ff;
+      background: rgba(17, 24, 39, .75);
+    }
+
     footer {
       margin-top: 20px;
       border-top: 1px solid var(--line);
@@ -157,6 +183,10 @@
     </header>
 
     <main class="grid" id="departmentsGrid"></main>
+
+    <section class="cross-tools" aria-label="Сквозные инструменты">
+      <a class="flow-chip" href="flow.html" title="Сквозной инструмент Flow">🔗 Flow</a>
+    </section>
 
     <footer>разработал Патрушев Е.</footer>
   </div>
