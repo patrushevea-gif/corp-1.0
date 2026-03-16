@@ -19,8 +19,23 @@
         </div>
 
         <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-            <h2 class="text-xl font-semibold mb-2">1. Загрузите шаблон договора (.docx)</h2>
-            <input type="file" id="templateInput" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+            <h2 class="text-xl font-semibold mb-2">1. Выберите тип договора и загрузите шаблон (.docx)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="templateType" class="block text-sm font-medium text-gray-700 mb-1">Тип шаблона</label>
+                    <select id="templateType" onchange="loadSelectedTemplate()" class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                        <option value="">Выберите тип...</option>
+                        <option value="nda">NDA</option>
+                        <option value="supply">Поставка</option>
+                        <option value="services">Услуги</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Шаблон договора</label>
+                    <input type="file" id="templateInput" accept=".docx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                </div>
+            </div>
+            <p id="templateStatus" class="mt-3 text-sm text-indigo-700"></p>
         </div>
 
         <div class="mb-6">
@@ -41,6 +56,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200" id="dataFields">
                 </div>
             <button onclick="generateDoc()" class="mt-6 w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-bold text-lg hover:bg-indigo-700 transition shadow-md">Сформировать и скачать договор</button>
+        </div>
+
+        <div class="mb-6 p-4 bg-green-50 rounded-lg border border-green-100">
+            <h2 class="text-xl font-semibold mb-2">Проверка контрагента</h2>
+            <p class="text-sm text-gray-700 mb-3">Для проверки компании по ИНН откройте отдельный «Хаб проверок».</p>
+            <a href="checks-hub.html" class="inline-block bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Открыть «Хаб проверок»</a>
         </div>
 
         <hr class="my-10 border-gray-300">
@@ -84,6 +105,32 @@
     </div>
 
     <script>
+        const TEMPLATE_FILES = {
+            nda: {
+                name: 'NDA_Шаблон.docx',
+                base64: 'UEsDBBQAAAAIABc3cFzXeYTq8QAAALgBAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbH2QzU7DMBCE730Ky9cqccoBIZSkB36OwKE8wMreJFb9J69b2rdn00KREOVozXwz62nXB+/EHjPZGDq5qhspMOhobBg7+b55ru6koALBgIsBO3lEkut+0W6OCUkwHKiTUynpXinSE3qgOiYMrAwxeyj8zKNKoLcworppmlulYygYSlXmDNkvhGgfcYCdK+LpwMr5loyOpHg4e+e6TkJKzmoorKt9ML+Kqq+SmsmThyabaMkGqa6VzOL1jh/0lSfK1qB4g1xewLNRfcRslIl65xmu/0/649o4DFbjhZ/TUo4aiXh77+qL4sGG71+06jR8/wlQSwMEFAAAAAgAFzdwXCAbhuqyAAAALgEAAAsAAABfcmVscy8ucmVsc43Puw6CMBQG4J2naM4uBQdjDIXFmLAafICmPZRGeklbL7y9HRzEODie23fyN93TzOSOIWpnGdRlBQStcFJbxeAynDZ7IDFxK/nsLDJYMELXFs0ZZ57yTZy0jyQjNjKYUvIHSqOY0PBYOo82T0YXDE+5DIp6Lq5cId1W1Y6GTwPagpAVS3rJIPSyBjIsHv/h3ThqgUcnbgZt+vHlayPLPChMDB4uSCrf7TKzQHNKuorZvgBQSwMEFAAAAAgAFzdwXHiWRdDIAgAAMwcAABEAAAB3b3JkL2RvY3VtZW50LnhtbKWV327TMBTG7/cUVq5Zk8A0SrR2GoxN1bQWrds1clM3iZbEke22jGrSNiT+CAkxcYNAm7jkchtUK53oMzhvxHHStB2gUdYb53yxz+98Pm7cpeVngY9ahHGPhgXNzBkaIqFN617oFLSd7bX5vIa4wGEd+zQkBW2PcG25OLfUturUbgYkFAgIIbfakV3QXCEiS9e57ZIA81zg2Yxy2hA5mwY6bTQ8m+htyur6XcM0kihi1CacQ7lHOGxhrg1xwZ80GpEQJhuUBViAZI4eYLbbjOaBHmHh1TzfE3vANhYzDC1oTRZaQ8T8yJBKsVJDw0eWwaapm6asDjuQVNQZ8cEDDbnrReNt3JYGk24Gad20iVbga6MjMBdmO4NVhtvwGAOnsV9PkwI/dX4z0TSmOBGFGGVMY+F6zcxJgL1wXPhWrZlsrjNbb9cZbUZjmjcbrRTujljqu/wP1vCMJrfGZzNTdXEEH1BgWyUnpAzXfHAEHUfqF6kV5xCC+6JG63sqTERUhIGpIbk/LB5hG3IiRjhhLaIV5Vf5Xh7Lz/JUnqDy6sqSDkuLamTJmAD+TTmV5/Eb2Y0P4yN5IQeoU17ZfLx/B8mP8gTAnVK5rNSp/CC/KF1Z30peXCB5JXvxS9lFnYeVavVplvddduWPFBe/iN8puPwGYPlTniE5iA8hGECpM3j2ZA911io7YH+7VEm4lzDRl1eQ+AqmoQSCjAEQruRZ/BpYKquLUmA3PoDll7/N9nK37MVxYqqv7EHRflIIKnQhvABxCfs9it9a8E6PD1Fnq6oM95N4I4mPoWufoB+lDaXOUxzolfLG/l9MZWfNiS2esFSmh+9Un6O2+rJN84G6q9uWC/Fi/l5e06+t28QMJgWFe8hcWDDUSuY5rhjLGhWCBmPtk8bErEtwncCNft/IK9mgVExIpykSaWRVle+xW6XSH62Ksr+74i9QSwECFAMUAAAACAAXN3Bc13mE6vEAAAC4AQAAEwAAAAAAAAAAAAAAgAEAAAAAW0NvbnRlbnRfVHlwZXNdLnhtbFBLAQIUAxQAAAAIABc3cFwgG4bqsgAAAC4BAAALAAAAAAAAAAAAAACAASIBAABfcmVscy8ucmVsc1BLAQIUAxQAAAAIABc3cFx4lkXQyAIAADMHAAARAAAAAAAAAAAAAACAAf0BAAB3b3JkL2RvY3VtZW50LnhtbFBLBQYAAAAAAwADALkAAAD0BAAAAAA='
+            },
+            supply: {
+                name: 'Поставка_Шаблон.docx',
+                base64: 'UEsDBBQAAAAIABc3cFzXeYTq8QAAALgBAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbH2QzU7DMBCE730Ky9cqccoBIZSkB36OwKE8wMreJFb9J69b2rdn00KREOVozXwz62nXB+/EHjPZGDq5qhspMOhobBg7+b55ru6koALBgIsBO3lEkut+0W6OCUkwHKiTUynpXinSE3qgOiYMrAwxeyj8zKNKoLcworppmlulYygYSlXmDNkvhGgfcYCdK+LpwMr5loyOpHg4e+e6TkJKzmoorKt9ML+Kqq+SmsmThyabaMkGqa6VzOL1jh/0lSfK1qB4g1xewLNRfcRslIl65xmu/0/649o4DFbjhZ/TUo4aiXh77+qL4sGG71+06jR8/wlQSwMEFAAAAAgAFzdwXCAbhuqyAAAALgEAAAsAAABfcmVscy8ucmVsc43Puw6CMBQG4J2naM4uBQdjDIXFmLAafICmPZRGeklbL7y9HRzEODie23fyN93TzOSOIWpnGdRlBQStcFJbxeAynDZ7IDFxK/nsLDJYMELXFs0ZZ57yTZy0jyQjNjKYUvIHSqOY0PBYOo82T0YXDE+5DIp6Lq5cId1W1Y6GTwPagpAVS3rJIPSyBjIsHv/h3ThqgUcnbgZt+vHlayPLPChMDB4uSCrf7TKzQHNKuorZvgBQSwMEFAAAAAgAFzdwXObC1BSYAgAACgcAABEAAAB3b3JkL2RvY3VtZW50LnhtbKVVQU/bMBS+8yuinEeTbIh1ES0qY6CqokUUzpObuElEYke2245VHOA27cLYDoiJ0e2044SGhpDY/oL7j/acNE3RJta1h9j+9N77vi9+sbOy+ioKtS5mPKCkpFsFU9cwcagbEK+k7+1uLBZ1jQtEXBRSgkv6Aeb6anlhpWe71OlEmAgNGAi3e7FT0n0hYtswuOPjCPFCFDiMctoWBYdGBm23AwcbPcpc47FpmckqZtTBnIPcc0S6iOsjuuhPNhpjAsE2ZRESAJlnRIjtd+JFYI+RCFpBGIgD4DaXMxpa0juM2COKxbEhVWKnhkZTVsGm0U1L1kc7kCgaDIfggRLuB3H+GrOyQdDPSLoPvUQ3CvVxC6yl+XqwzlAPppxwGvtuWhSFqfOHGS1zio4oinHFNBbua2ZOIhSQXHimrZncXG++vd1ktBPnbMF8bFWyP+ZS5/I/uEY9mnw1Pp+Zpo9iOECRY1c9QhlqheAIdlxTX6ReXtA0uC9a1D1QywTEZRiYGpL7w+YxcqAmZphj1sV6WX6VJ/Kd/Cg/yQtNfoDpPTyn8AzkiSYvYfFZfoGcU3kuz1YMICqrkSVjQv9vjUv5c3g0PJbf5NXwjbyRt7bWr1e2Xhw+0uSZvADlfrVeV+gcci+1fm17WyFlZqCijc2d+mFhdnX5Xf6SN8MjcHA3PAb1tUaz+TKzAObkHSRdqTDYu4aEjcZefb2yW23MrjuQ1/IWSG/kD9A+Hr4F2p0mCPZrybhWrSVTpV77m0bWQo4dsc1SmPbUa77WeurAWtYzdQX3bB/Wy8UnRd24l7eFGAQFhevFWloyVSYLPF/ksEWFoFGOQ9yeiPoYuRgu6qdmUcE2pWICeh2RQDNTVb5ztwql36JaZX+x8m9QSwECFAMUAAAACAAXN3Bc13mE6vEAAAC4AQAAEwAAAAAAAAAAAAAAgAEAAAAAW0NvbnRlbnRfVHlwZXNdLnhtbFBLAQIUAxQAAAAIABc3cFwgG4bqsgAAAC4BAAALAAAAAAAAAAAAAACAASIBAABfcmVscy8ucmVsc1BLAQIUAxQAAAAIABc3cFzmwtQUmAIAAAoHAAARAAAAAAAAAAAAAACAAf0BAAB3b3JkL2RvY3VtZW50LnhtbFBLBQYAAAAAAwADALkAAADEBAAAAAA='
+            },
+            services: {
+                name: 'Услуги_Шаблон.docx',
+                base64: 'UEsDBBQAAAAIABc3cFzXeYTq8QAAALgBAAATAAAAW0NvbnRlbnRfVHlwZXNdLnhtbH2QzU7DMBCE730Ky9cqccoBIZSkB36OwKE8wMreJFb9J69b2rdn00KREOVozXwz62nXB+/EHjPZGDq5qhspMOhobBg7+b55ru6koALBgIsBO3lEkut+0W6OCUkwHKiTUynpXinSE3qgOiYMrAwxeyj8zKNKoLcworppmlulYygYSlXmDNkvhGgfcYCdK+LpwMr5loyOpHg4e+e6TkJKzmoorKt9ML+Kqq+SmsmThyabaMkGqa6VzOL1jh/0lSfK1qB4g1xewLNRfcRslIl65xmu/0/649o4DFbjhZ/TUo4aiXh77+qL4sGG71+06jR8/wlQSwMEFAAAAAgAFzdwXCAbhuqyAAAALgEAAAsAAABfcmVscy8ucmVsc43Puw6CMBQG4J2naM4uBQdjDIXFmLAafICmPZRGeklbL7y9HRzEODie23fyN93TzOSOIWpnGdRlBQStcFJbxeAynDZ7IDFxK/nsLDJYMELXFs0ZZ57yTZy0jyQjNjKYUvIHSqOY0PBYOo82T0YXDE+5DIp6Lq5cId1W1Y6GTwPagpAVS3rJIPSyBjIsHv/h3ThqgUcnbgZt+vHlayPLPChMDB4uSCrf7TKzQHNKuorZvgBQSwMEFAAAAAgAFzdwXFHQf3G1AgAAPgcAABEAAAB3b3JkL2RvY3VtZW50LnhtbKWVTU8TQRjH73yKyZ6lu1WCuKElIEKaxpZQOJvpdtrdsLuzmZm2YsMBPGoiigei4cVw8YhEIoLgV3j6jXxm221LJFjbw87Mv88+v+e/89bZuZeBTxpMSI+HGSOdsgzCQodXvLCWMdbXliZnDCIVDSvU5yHLGJtMGnPZidmmXeFOPWChIkgIpd2MnIzhKhXZpikdlwVUpgLPEVzyqko5PDB5teo5zGxyUTEfWmkrHkWCO0xKLPeUhg0qjS4u+JvGIxZisMpFQBVKUTMDKjbq0STSI6q8sud7ahPZ1nSC4RmjLkK7i5jsGdIpdsdQt0syxDB1OymL3RmIK5qC+eiBh9L1ov5njErDoJtAGvd9RCPwjd4SpKfGW4NFQZvY9YHD2K90kgK/4/x+YtoaYkU0opcxjIXbNRMnAfXCfuGRpmZwcmvjze2y4PWoT/PGo+XCjR5Ln8v/YHXXaPDT5HhmSi6N8AAFjp2rhVzQso+OcMaJ3pFGdoIQvC/KvLKph7GIstgI3cT3hy0j6mBOJJhkosGMLHyFXXgPn+EQDgh8xG4Pnw/4HMMugRP4grET2Js1EZHVrYjbGPxv+n57G37DDVzBNVy0d+AcrtpvbdIqzD9/tvWAwD4cYN1WrlDQ6hMcwRFp5VdWtNJWjnW0uLxa2EqN6OCwvUPgAn5habSAwzscvUNHC8VS6UVi6zv+/LO9jeGz9ms414hrOCVwg8nXmHwGpzodea2l4nphcX4tVxzd4jFWu0TmBfzQltpvCHyLC1zCKTpbLaGlVj5uF3L5uJsv5O8qlyy7ZI5aER3Z2Qe10ivS1Ic8nX6ir+2m7eJ4eubRjGHeeu85FRhUHK+k9NSUpd8UXs1VfVnmSvGgr31WHYi6jFYYXu6PrRktq5yrAVmrq1haSVXtu+9Wq87+1aPkny/7B1BLAQIUAxQAAAAIABc3cFzXeYTq8QAAALgBAAATAAAAAAAAAAAAAACAAQAAAABbQ29udGVudF9UeXBlc10ueG1sUEsBAhQDFAAAAAgAFzdwXCAbhuqyAAAALgEAAAsAAAAAAAAAAAAAAIABIgEAAF9yZWxzLy5yZWxzUEsBAhQDFAAAAAgAFzdwXFHQf3G1AgAAPgcAABEAAAAAAAAAAAAAAIAB/QEAAHdvcmQvZG9jdW1lbnQueG1sUEsFBgAAAAADAAMAuQAAAOEEAAAAAA=='
+            }
+        };
+
+        function base64ToBlob(base64Data, contentType) {
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+
+            return new Blob([new Uint8Array(byteNumbers)], { type: contentType });
+        }
+
         // Глобальный объект для хранения всех данных
         let parsedData = {
             NAME: "", INN: "", KPP: "", OGRN: "", 
@@ -168,6 +215,43 @@
             parsedData[key] = value;
         }
 
+        async function loadSelectedTemplate() {
+            const templateType = document.getElementById('templateType').value;
+            const status = document.getElementById('templateStatus');
+            const fileInput = document.getElementById('templateInput');
+
+            const templateMap = TEMPLATE_FILES;
+
+            if (!templateType) {
+                status.textContent = '';
+                fileInput.value = '';
+                return;
+            }
+
+            const selectedTemplate = templateMap[templateType];
+
+            try {
+                const blob = base64ToBlob(
+                    selectedTemplate.base64,
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                );
+
+                const file = new File([blob], selectedTemplate.name, {
+                    type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+                });
+
+                const transfer = new DataTransfer();
+                transfer.items.add(file);
+                fileInput.files = transfer.files;
+
+                status.textContent = `Загружен типовой шаблон: ${selectedTemplate.name}`;
+            } catch (error) {
+                console.error(error);
+                status.textContent = 'Не удалось автоматически подгрузить шаблон. Загрузите .docx вручную.';
+                fileInput.value = '';
+            }
+        }
+
         // Генерация файла Word
         function generateDoc() {
             const fileInput = document.getElementById('templateInput');
@@ -206,6 +290,6 @@
             reader.readAsBinaryString(file);
         }
     </script>
+    <a href="index.html" class="inline-block mt-6 text-indigo-600 hover:text-indigo-800 font-bold">← На главную</a>
 </body>
-<a href="index.html" class="inline-block mb-4 text-indigo-600 hover:text-indigo-800 font-bold">← На главную</a>
 </html>
