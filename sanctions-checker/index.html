@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Санкционный чекер</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="header">
+        <h1>Санкционный чекер</h1>
+        <p>
+          Введите ИНН или название компании, чтобы получить прямые ссылки на
+          международные и российские санкционные базы для быстрой ручной
+          проверки.
+        </p>
+      </header>
+
+      <section class="search-panel" aria-label="Параметры проверки">
+        <label for="entityInput">ИНН или название компании</label>
+        <div class="input-row">
+          <input
+            id="entityInput"
+            type="text"
+            placeholder="Например: 7707083893 или ООО Ромашка"
+            autocomplete="off"
+          />
+          <button id="generateButton" type="button">Сгенерировать ссылки</button>
+        </div>
+        <p id="validationMessage" class="validation-message" role="status"></p>
+      </section>
+
+      <section>
+        <h2>Международные базы</h2>
+        <ul id="internationalList" class="link-list"></ul>
+      </section>
+
+      <section>
+        <h2>Российские базы</h2>
+        <ul id="russianList" class="link-list"></ul>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
