@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Юридический помощник | Legal-Бот и База знаний</title>
+  <style>
+    :root {
+      --bg: #070b16;
+      --bg-2: #0f1830;
+      --card: #111827;
+      --card-2: #1a2234;
+      --line: #2b3853;
+      --text: #e9edf5;
+      --muted: #a7afbf;
+      --accent: #7db1ff;
+      --accent-2: #c5dbff;
+      --success: #8ad4a3;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(920px 460px at 50% 0%, #1a2740 0%, transparent 75%),
+        linear-gradient(180deg, var(--bg-2) 0%, var(--bg) 62%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 28px 20px 36px;
+    }
+
+    .top-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .back {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    .back:hover { color: var(--text); }
+
+    .badge {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 7px 12px;
+      color: var(--muted);
+      font-size: 12px;
+      background: rgba(17, 24, 39, .65);
+    }
+
+    h1 {
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      font-size: clamp(30px, 4vw, 46px);
+      line-height: 1.05;
+    }
+
+    .subtitle {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: clamp(14px, 2vw, 20px);
+    }
+
+    .layout {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(115deg, var(--card) 0%, var(--card-2) 100%);
+      padding: 14px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--accent-2);
+    }
+
+    .buttons { display: flex; flex-direction: column; gap: 8px; }
+
+    .chip {
+      width: 100%;
+      border: 1px solid #384966;
+      border-radius: 10px;
+      background: rgba(16, 24, 40, .7);
+      color: var(--text);
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: .18s ease;
+    }
+
+    .chip:hover,
+    .chip.active {
+      border-color: var(--accent);
+      background: rgba(42, 65, 102, .5);
+      transform: translateY(-1px);
+    }
+
+    .chat {
+      min-height: 420px;
+      max-height: 520px;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 2px;
+    }
+
+    .msg {
+      border: 1px solid #33435f;
+      border-radius: 12px;
+      padding: 11px 12px;
+      font-size: 14px;
+      line-height: 1.45;
+      background: rgba(16, 23, 37, .8);
+    }
+
+    .msg.user {
+      margin-left: auto;
+      max-width: 86%;
+      border-color: #45608e;
+      background: rgba(33, 52, 84, .72);
+    }
+
+    .msg.bot {
+      max-width: 95%;
+    }
+
+    .msg strong { color: var(--accent-2); }
+
+    .link {
+      margin-top: 8px;
+      display: inline-block;
+      color: var(--success);
+      text-decoration: none;
+      border-bottom: 1px dashed currentColor;
+    }
+
+    .link:hover { color: #b2edc5; }
+
+    details {
+      margin-top: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(11, 17, 30, .72);
+    }
+
+    summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 13px 14px;
+      font-weight: 600;
+      color: var(--accent-2);
+    }
+
+    .kb-body { padding: 0 14px 14px; }
+
+    .kb-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 230px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0e1523;
+      color: var(--text);
+      padding: 10px;
+      font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      resize: vertical;
+    }
+
+    .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+
+    button.primary {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: var(--accent);
+      color: #101825;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.ghost {
+      border: 1px solid #41516f;
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .status { margin-top: 8px; min-height: 20px; color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .chat { min-height: 320px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top-line">
+      <a class="back" href="departments.html?dept=legal">← К проектам направления «Право»</a>
+      <div class="badge">Legal-Бот и База знаний · Поддержка и ТК РФ</div>
+    </div>
+
+    <header>
+      <h1>Юридический помощник</h1>
+      <p class="subtitle">Умный FAQ для типовых трудовых вопросов сотрудников: моментальные справки, шаблоны заявлений и материалы по compliance.</p>
+    </header>
+
+    <section class="layout">
+      <aside class="panel">
+        <h2>Категории</h2>
+        <div id="categories" class="buttons"></div>
+
+        <h2 style="margin-top:14px;">Вопросы</h2>
+        <div id="questions" class="buttons"></div>
+      </aside>
+
+      <section class="panel">
+        <h2>Диалог</h2>
+        <div id="chat" class="chat"></div>
+      </section>
+    </section>
+
+    <details>
+      <summary>Управление базой знаний (текстом)</summary>
+      <div class="kb-body">
+        <p class="kb-note">
+          Формат строки: <b>Категория::Вопрос::Ответ::Ссылка/материал</b>.<br>
+          Одна строка = одна карточка FAQ. Поле со ссылкой можно оставить пустым. Изменения сохраняются в браузере (localStorage).
+        </p>
+        <textarea id="kbEditor"></textarea>
+        <div class="actions">
+          <button id="applyKb" class="primary" type="button">Обновить базу из текста</button>
+          <button id="resetKb" class="ghost" type="button">Сбросить к стандартной базе</button>
+        </div>
+        <div id="status" class="status"></div>
+      </div>
+    </details>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'legal_assistant_kb_v1';
+
+    const DEFAULT_KB = [
+      {
+        category: 'Оформить командировку',
+        question: 'Как оформить командировку и какие документы нужны?',
+        answer: 'Оформите служебную записку, согласуйте даты с руководителем, затем подайте заявление в HR не позднее чем за 3 рабочих дня. Основание: ст. 166–168 ТК РФ и локальное положение о командировках.',
+        link: 'Шаблон заявления: /templates/command-trip-request.docx'
+      },
+      {
+        category: 'Оформить командировку',
+        question: 'Как компенсируются расходы в командировке?',
+        answer: 'Компенсируются проезд, проживание и суточные в пределах норм компании. После возвращения нужно предоставить авансовый отчет и подтверждающие документы в течение 3 рабочих дней.',
+        link: 'Памятка: /learn/compliance/command-trip-expenses'
+      },
+      {
+        category: 'Больничный',
+        question: 'Что делать, если я заболел?',
+        answer: 'Сообщите руководителю в день отсутствия и откройте электронный лист нетрудоспособности. После закрытия больничного проверьте корректность данных в системе кадрового учета.',
+        link: 'Инструкция: /learn/compliance/sick-leave'
+      },
+      {
+        category: 'Больничный',
+        question: 'Как оплачивается больничный?',
+        answer: 'Размер выплаты зависит от страхового стажа и среднего заработка, часть выплат производится работодателем, часть — СФР. Основание: Федеральный закон № 255-ФЗ.',
+        link: 'Калькулятор выплат: rasch.html'
+      },
+      {
+        category: 'Отпуск',
+        question: 'Когда нужно подавать заявление на отпуск?',
+        answer: 'Заявление подается минимум за 14 календарных дней до даты начала отпуска, если иной срок не установлен графиком отпусков или локальными актами.',
+        link: 'Шаблон заявления: /templates/vacation-request.docx'
+      },
+      {
+        category: 'Штрафы и дисциплина',
+        question: 'Могут ли удержать штраф из зарплаты за опоздание?',
+        answer: 'Прямые денежные штрафы трудовым законодательством не предусмотрены. Работодатель может применять дисциплинарные взыскания по ст. 192 ТК РФ при соблюдении процедуры.',
+        link: 'Памятка по дисциплине: /learn/compliance/discipline-rules'
+      },
+      {
+        category: 'Увольнение',
+        question: 'Как подать заявление на увольнение по собственному желанию?',
+        answer: 'Подайте письменное заявление работодателю не позднее чем за 14 календарных дней до даты увольнения. Срок может быть сокращен по соглашению сторон.',
+        link: 'Шаблон заявления: /templates/resignation-request.docx'
+      },
+      {
+        category: 'Compliance',
+        question: 'Где пройти обязательное обучение по трудовому комплаенсу?',
+        answer: 'Обучение доступно в корпоративной LMS. Рекомендуем проходить курс ежегодно и при изменениях в локальных нормативных актах.',
+        link: 'Курс: /learn/compliance/labor-basics-2026'
+      }
+    ];
+
+    function kbToText(kb) {
+      return kb.map((item) => [item.category, item.question, item.answer, item.link || ''].join('::')).join('\n');
+    }
+
+    function parseKb(text) {
+      const lines = text.split('\n').map((line) => line.trim()).filter(Boolean);
+      const parsed = [];
+
+      lines.forEach((line, index) => {
+        const parts = line.split('::').map((part) => part.trim());
+        if (parts.length < 3) {
+          throw new Error(`Строка ${index + 1}: нужно минимум 3 поля (категория, вопрос, ответ).`);
+        }
+
+        const [category, question, answer, link = ''] = parts;
+        if (!category || !question || !answer) {
+          throw new Error(`Строка ${index + 1}: категория, вопрос и ответ не должны быть пустыми.`);
+        }
+
+        parsed.push({ category, question, answer, link });
+      });
+
+      if (!parsed.length) {
+        throw new Error('База знаний пустая. Добавьте хотя бы одну строку.');
+      }
+
+      return parsed;
+    }
+
+    function loadKb() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return [...DEFAULT_KB];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) && parsed.length ? parsed : [...DEFAULT_KB];
+      } catch {
+        return [...DEFAULT_KB];
+      }
+    }
+
+    let kb = loadKb();
+    let currentCategory = '';
+
+    const categoriesEl = document.getElementById('categories');
+    const questionsEl = document.getElementById('questions');
+    const chatEl = document.getElementById('chat');
+    const kbEditor = document.getElementById('kbEditor');
+    const statusEl = document.getElementById('status');
+
+    function addMessage(text, role = 'bot', link = '') {
+      const item = document.createElement('div');
+      item.className = `msg ${role}`;
+
+      let html = text;
+      if (role === 'bot') {
+        html = `<strong>Юридический помощник:</strong> ${text}`;
+      }
+      item.innerHTML = html;
+
+      if (link) {
+        const a = document.createElement('a');
+        a.className = 'link';
+        a.href = '#';
+        a.textContent = link;
+        item.appendChild(document.createElement('br'));
+        item.appendChild(a);
+      }
+
+      chatEl.appendChild(item);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    function getCategories() {
+      return [...new Set(kb.map((entry) => entry.category))];
+    }
+
+    function renderCategories() {
+      categoriesEl.innerHTML = '';
+      getCategories().forEach((category, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = `chip ${category === currentCategory ? 'active' : ''}`;
+        button.textContent = category;
+        button.addEventListener('click', () => {
+          currentCategory = category;
+          renderCategories();
+          renderQuestions();
+        });
+        categoriesEl.appendChild(button);
+
+        if (!currentCategory && index === 0) {
+          currentCategory = category;
+        }
+      });
+    }
+
+    function renderQuestions() {
+      questionsEl.innerHTML = '';
+      kb
+        .filter((entry) => entry.category === currentCategory)
+        .forEach((entry) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'chip';
+          button.textContent = entry.question;
+          button.addEventListener('click', () => {
+            addMessage(entry.question, 'user');
+            addMessage(entry.answer, 'bot', entry.link);
+          });
+          questionsEl.appendChild(button);
+        });
+    }
+
+    function renderAll() {
+      renderCategories();
+      renderQuestions();
+      kbEditor.value = kbToText(kb);
+      chatEl.innerHTML = '';
+      addMessage('Выберите категорию и вопрос слева — я сразу выдам утвержденную справку или шаблон.');
+    }
+
+    document.getElementById('applyKb').addEventListener('click', () => {
+      try {
+        kb = parseKb(kbEditor.value);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(kb));
+        currentCategory = '';
+        renderAll();
+        statusEl.textContent = `База обновлена: ${kb.length} записей.`;
+      } catch (error) {
+        statusEl.textContent = `Ошибка: ${error.message}`;
+      }
+    });
+
+    document.getElementById('resetKb').addEventListener('click', () => {
+      kb = [...DEFAULT_KB];
+      localStorage.removeItem(STORAGE_KEY);
+      currentCategory = '';
+      renderAll();
+      statusEl.textContent = 'Возвращена стандартная база знаний.';
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
